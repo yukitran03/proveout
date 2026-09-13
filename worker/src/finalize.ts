@@ -69,6 +69,12 @@ console.log('wrote web/.env.production and web/.env.local');
 // ----------------------------------------------------------------- README
 const usdc = (v?: string) => (v ? (Number(v) / 1e6).toLocaleString() : '—');
 
+const live = [
+  d.webUrl ? `**Live console:** ${d.webUrl}` : '',
+  d.repoUrl ? `**Repository:** ${d.repoUrl}` : '',
+]
+  .filter(Boolean)
+  .join('  \n');
 const addresses = [
   '| Contract | Chain | Address |',
   '|---|---|---|',
@@ -100,6 +106,8 @@ const transactions = s
 const block = [
   '<!-- BEGIN:DEPLOYMENT -->',
   '## Deployed',
+  '',
+  live,
   '',
   addresses,
   '',

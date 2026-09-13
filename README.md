@@ -24,6 +24,9 @@ with a number that was never run.
 <!-- BEGIN:DEPLOYMENT -->
 ## Deployed
 
+**Live console:** https://web-phuoap80r-yukitran03s-projects.vercel.app  
+**Repository:** https://github.com/yukitran03/proveout
+
 | Contract | Chain | Address |
 |---|---|---|
 | `JobEscrow` | Creditcoin CC3 Testnet | [`0x6Ecf0f01DDE2b1872E6EA131c41De85e6a285BB6`](https://creditcoin-testnet.blockscout.com/address/0x6Ecf0f01DDE2b1872E6EA131c41De85e6a285BB6) |

@@ -164,24 +164,97 @@ its own** and the submission does not pretend otherwise — see Step 3.
 
 ---
 
-## Step 3 — deploy and three real transactions — **BLOCKED ON FAUCET**
+## Step 3 — deploy and three real transactions — **DONE**
 
-Not started, and cannot be started from this machine. Both faucets require a human:
+Both faucets landed (Sepolia first, CC3 about half an hour later), so `npm run deploy` was
+built to deploy per chain and reuse whatever already exists rather than refusing to do the
+half it could.
 
-- **Creditcoin CC3**: Discord-only (`/faucet address:`), 100 CTC per 24 h.
-- **Sepolia**: Google Cloud web3 faucet, needs a Google sign-in.
+| Contract | Chain | Address |
+|---|---|---|
+| `JobEscrow` | CC3 Testnet | `0x6Ecf0f01DDE2b1872E6EA131c41De85e6a285BB6` (block 5480951) |
+| `SourceRegistry` | CC3 Testnet | `0x5995bdC12087884B5766433c59eb42b8EbB3C50D` |
+| `TestUSDC` | CC3 Testnet | `0xD40002aA8a8faDd14723b90690051a368232654e` |
+| `WorkOracle` | Sepolia | `0xD40002aA8a8faDd14723b90690051a368232654e` |
 
-Everything else is ready and waiting. Sprint wallet generated locally:
+**The two addresses above are identical, and that is not a typo.** The first contract this
+deployer created on Sepolia and the first it created on Creditcoin came from the same
+address at the same nonce, so CREATE put them at the same place on both chains. This is
+exactly the collision gate G2b exists to reject, demonstrated by accident on the first
+deployment. Worth keeping in the deck.
+
+### The three transactions, verified independently after the fact
 
 ```
-0x3Ef919342928307ABdCc9ec702f6f3c4f34f019c
+release    status=1 block=5480996 from=0x3Ef9…019c  logs=3  gas=306250
+challenge  status=1 block=5481038 from=0xA035…92Ea  logs=4  gas=307888
+replay     status=0 block=5481039 from=0x3Ef9…019c  logs=0  gas=212170
 ```
 
-Private key at `~/.config/hackathon-sprint/proveout.env` (chmod 600, outside every repo).
-Never written into this repository.
+1. **Release** — `0x9a3c9b1d0a327cff81ba85f3456abfcf0ee810a1a8a69f8e2451665b9a2c1874`
+   Proof of `WorkCompleted` on Sepolia block 11696158, txIndex 72, 7 merkle siblings,
+   3 continuity roots. Builder received 1200 tUSDC (1000 payout + 200 bond returned).
+2. **Challenge** — `0x6713f5e66d54554df8bf2603221300a890ae32bad8aa60de33015c92712a8966`
+   Submitted **from `0xA0356B8011B63990978f2a7CCc389c3769d092Ea`**, which is neither the
+   buyer nor the builder. Buyer refunded 1100, challenger paid a 100 tUSDC bounty out of
+   the builder's bond. This is the project's whole thesis, on chain.
+3. **Replay blocked** — `0xc4738c2976693c67365a8662923dd30e2c7dbc3d8048014ebd972bdd51a92836`
+   Resubmitting proof #1 reverted with `Query already processed`. Status 0 on chain.
 
-No Infura key is needed after all: `https://ethereum-sepolia-rpc.publicnode.com` serves the
-Sepolia reads this project makes, which removes one of the plan's human dependencies.
+Escrow afterwards: `totalIn = totalOut = 2400000000` (2400 tUSDC), `vaultSolvent() = true`.
 
-Nothing in the README claims a deployment, a transaction hash or an on-chain number until
-this step actually runs.
+Attestation waits were 7–9 minutes each, matching the documented behaviour.
+
+## Step 4 — web — **DONE**
+
+Live: https://web-phuoap80r-yukitran03s-projects.vercel.app
+
+The console reads chain logs at request time. No indexer, no cache, no fixtures. Verified
+against the deployment: it renders the two real jobs with `Released` and `Refunded`
+badges and the vault invariant as `HOLDS`.
+
+### Two real bugs caught before they shipped
+
+1. **The console would have failed in production every time.** It scanned a
+   200,000-block `eth_getLogs` range. The CC3 public RPC enforces a 10-second query
+   timeout: measured, 20,000 blocks takes 6.5s and 200,000 fails outright. It now walks
+   backwards in 5,000-block windows (about 0.6s each) from a recorded deployment floor,
+   and a slow window degrades that window instead of blanking the page.
+
+2. **`web/lib/` had never been committed.** `.gitignore` carried `lib/` for Foundry's
+   dependency directory at the root, but an unanchored directory pattern matches at every
+   depth. The console's entire chain-reading module was missing from the repository — it
+   built here and would have failed for anyone who cloned it, including a judge. Anchored
+   to `/lib/`. Verified by cloning the repo fresh and checking the file is present.
+
+   The same bug would have broken the Vercel build for a second reason: Vercel does not
+   upload gitignored `.env` files, so the deployed console would have had no contract
+   address and rendered empty **without erroring**. Addresses now also go into a committed
+   `web/lib/deployment.json`, still generated from the deployment record.
+
+### On not cloning the UI repos
+
+The plan named three repos to clone for the front end. All three are **Sui/Move** projects
+and none has a `package.json` at its root. Retrofitting a Sui dApp onto an EVM escrow
+would have cost more than it saved, so the layout ideas were taken — stepper console, hero
+with three steps, table with status badges and truncated hashes — and the code is original.
+Recorded in `docs/credits.md`.
+
+## Step 5 — docs — **DONE**
+
+`README.md`, `docs/attestcoin-integration.md`, `docs/technical-spec.md`,
+`docs/threat-model.md`, `docs/credits.md`, and this file.
+
+Every address and transaction hash in the README is **generated** by `npm run finalize`
+from `deployments/cc3-testnet.json`. Nothing is typed by hand, so a redeployment cannot
+leave a stale address behind in the docs — the failure the plan specifically warned about.
+
+## Still open
+
+- **Vercel token must be rotated.** It travelled through a chat transcript and sits in the
+  plan HTML file. Revoke and reissue.
+- **Contract source is not verified on Blockscout.** Worth doing before submission if the
+  explorer supports it for CC3; if it does not, say so in the README rather than leaving it
+  unexplained.
+- **Repo is private.** It must be switched to public before the DoraHacks entry is judged.
+- **Deck PDF and demo video** are not built. The plan assigns both to the owner.
