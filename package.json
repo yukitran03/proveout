@@ -1,0 +1,29 @@
+{
+  "name": "proveout",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@gluwa/asc-contracts": "^0.2.1",
+    "@gluwa/usc-sdk": "^0.18.0",
+    "@openzeppelin/contracts": "^5.6.1",
+    "dotenv": "^17.4.2",
+    "ethers": "^6.17.0",
+    "tsx": "^4.23.13",
+    "typescript": "^7.0.2"
+  },
+  "scripts": {
+    "build:contracts": "forge build --root contracts",
+    "test": "forge test --root contracts -vv",
+    "test:gas": "forge test --root contracts --gas-report",
+    "spike": "tsx spikes/spike1_prove.ts",
+    "deploy": "tsx worker/src/deploy.ts",
+    "e2e": "tsx worker/src/e2e.ts",
+    "worker": "tsx worker/src/listen.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.2"
+  }
+}
