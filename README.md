@@ -217,6 +217,8 @@ being attested into permanence.
 - [`docs/technical-spec.md`](docs/technical-spec.md)
 - [`docs/threat-model.md`](docs/threat-model.md) — what each gate stops
 - [`docs/credits.md`](docs/credits.md)
+- [`docs/deck-prompt.md`](docs/deck-prompt.md) — the full prompt for building the pitch deck, with every figure it is allowed to use
+- [`docs/demo-video.md`](docs/demo-video.md) — shot list and spoken script for the demo video
 - [`BUILD_LOG.md`](BUILD_LOG.md) — what was verified, what was assumed and turned out wrong
 
 ## License
