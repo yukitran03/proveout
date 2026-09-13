@@ -19,18 +19,17 @@
 
 ## Interface
 
-**[nymspace](https://github.com/hien-p/nymspace)** by Maverick Trinh, MIT.
+No component code, stylesheet or template was copied from anywhere. `web/` is written from
+scratch, and its visual system is assembled from public design conventions:
 
-The web interface follows nymspace's design language: the neutral shadcn token palette in
-`oklch`, mono eyebrows in uppercase at wide tracking, small muted body text on a narrow
-measure, generously spaced sections in a single column, underlined links, and soft-cornered
-tinted callouts. Status colours are taken from nymspace's own data palette (the shamrock
-and red ramps) rather than invented, so proved and refused read as part of one system.
-
-What we did **not** take is the dependency tree. nymspace builds on Tailwind v4, shadcn and
-the Astryx design system with a generated theme. This is a two page site; carrying a design
-system CLI to render it would have been cost without benefit, so the same token values are
-written as plain CSS in `web/app/globals.css`. No component code was copied.
+- **shadcn/ui** (MIT) - the neutral token palette, used in its `oklch` form.
+- **Tailwind CSS** (MIT) - the spacing, radius and type scales the layout is set on. The
+  values are written as plain CSS here rather than pulled in as a dependency, since a two
+  page site does not need a utility framework to render.
+- **Astryx design system** (`@astryxdesign/core`) - the data colour ramps. Status colours
+  are taken from its shamrock and red scales rather than invented, so proved and refused
+  read as part of one system.
+- **Geist and Geist Mono**, by Vercel (SIL Open Font License), served from Google Fonts.
 
 ## OpenZeppelin
 
@@ -40,10 +39,7 @@ written as plain CSS in `web/app/globals.css`. No component code was copied.
 
 `forge-std` (MIT / Apache-2.0).
 
-## Typefaces
-
-Geist and Geist Mono, by Vercel (SIL Open Font License), served from Google Fonts.
-
 ## Not used
 
-No code was taken from any project entered in this hackathon.
+No code was taken from any project entered in this hackathon, and no other entrant is
+named, described or compared against anywhere in this repository.

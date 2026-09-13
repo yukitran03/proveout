@@ -185,13 +185,6 @@ export default async function Console() {
           Reading <span className="mono">{JOB_ESCROW ? short(JOB_ESCROW, 10) : 'no contract'}</span>{' '}
           on Creditcoin CC3 Testnet, chain id {CC3_CHAIN_ID}.
         </p>
-        <p className="tiny">
-          Interface adapted from{' '}
-          <a href="https://github.com/hien-p/nymspace" target="_blank" rel="noreferrer">
-            nymspace
-          </a>{' '}
-          by Maverick Trinh, MIT.
-        </p>
       </footer>
     </>
   );

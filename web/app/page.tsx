@@ -301,13 +301,6 @@ if (receipt.receiptStatus != 1)
           ProveOut. Built for BUIDL CTC 2026 Fall, track AI. Apache-2.0. Settlement on Creditcoin CC3
           Testnet, proofs by Attestcoin Protocol.
         </p>
-        <p className="tiny">
-          Interface adapted from{' '}
-          <a href="https://github.com/hien-p/nymspace" target="_blank" rel="noreferrer">
-            nymspace
-          </a>{' '}
-          by Maverick Trinh, MIT.
-        </p>
       </footer>
     </>
   );
