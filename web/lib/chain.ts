@@ -2,29 +2,35 @@ import { Contract, JsonRpcProvider } from 'ethers';
 import deployment from './deployment.json';
 
 /**
- * Addresses come from `deployment.json`, which `npm run finalize` generates from the
- * deployment record. They are committed on purpose: they are public contract addresses,
- * not secrets, and Vercel does not upload gitignored `.env` files — a build there would
- * otherwise come up with no contract configured and silently render an empty console.
- * An environment variable still wins, for pointing the same build at another deployment.
+ * Every address, link and hash the site shows comes from `deployment.json`, which
+ * `npm run finalize` generates from the deployment record. They are committed on purpose:
+ * these are public facts, not secrets, and Vercel does not upload gitignored `.env` files,
+ * so a build there would otherwise come up with nothing configured and silently render an
+ * empty page. An environment variable still wins, for pointing one build at another
+ * deployment. Nothing here is hand-typed, so the site cannot drift from what is on chain.
  */
 export const CC3_RPC =
   process.env.NEXT_PUBLIC_CREDITCOIN_RPC_URL ?? 'https://rpc.cc3-testnet.creditcoin.network';
 export const EXPLORER = 'https://creditcoin-testnet.blockscout.com';
 export const SEPOLIA_EXPLORER = 'https://sepolia.etherscan.io';
 export const PRECOMPILE = '0x0000000000000000000000000000000000000FD2';
-export const CC3_CHAIN_ID = 102031;
+export const CC3_CHAIN_ID = deployment.creditcoinChainId || 102031;
+export const SOURCE_CHAIN_KEY = 1;
+export const SOURCE_EVM_CHAIN_ID = 11155111;
 
 export const JOB_ESCROW = process.env.NEXT_PUBLIC_JOB_ESCROW || deployment.jobEscrow || '';
 export const WORK_ORACLE = process.env.NEXT_PUBLIC_WORK_ORACLE || deployment.workOracle || '';
 export const TEST_USDC = process.env.NEXT_PUBLIC_TEST_USDC || deployment.testUsdc || '';
+export const SOURCE_REGISTRY = deployment.sourceRegistry || '';
+export const REPO_URL = deployment.repoUrl || '';
+export const TX = deployment.transactions;
+
+/** Block the escrow was deployed at; scanning below it is wasted work. */
+export const DEPLOY_BLOCK = Number(process.env.NEXT_PUBLIC_DEPLOY_BLOCK ?? deployment.deployBlock ?? 0);
 
 /** Only the fragments the console reads. Kept minimal on purpose. */
 export const ESCROW_ABI = [
   'event JobCreated(bytes32 indexed jobId, address indexed buyer, address indexed builder, uint128 amount, uint128 bond, uint64 deadline, bytes32 criteriaHash, address source)',
-  'event JobReleased(bytes32 indexed jobId, address indexed builder, uint128 amount, uint128 bond, bytes32 queryId)',
-  'event JobChallenged(bytes32 indexed jobId, address indexed challenger, uint128 refunded, uint128 bounty, bytes32 queryId)',
-  'event JobRefunded(bytes32 indexed jobId, address indexed buyer, uint128 amount, uint128 bond)',
   'function getJob(bytes32) view returns (tuple(address buyer, address builder, address source, uint128 amount, uint128 bond, uint64 deadline, bytes32 criteriaHash, bool bondPosted, uint8 status))',
   'function totalIn() view returns (uint256)',
   'function totalOut() view returns (uint256)',
@@ -50,14 +56,11 @@ export function provider() {
   return new JsonRpcProvider(CC3_RPC, CC3_CHAIN_ID, { staticNetwork: true });
 }
 
-/** Block the escrow was deployed at; scanning below it is wasted work. */
-export const DEPLOY_BLOCK = Number(process.env.NEXT_PUBLIC_DEPLOY_BLOCK ?? deployment.deployBlock ?? 0);
-
 /**
- * The CC3 public RPC enforces a 10-second query timeout, and `eth_getLogs` over a wide
- * range hits it: a 20,000-block window took 6.5s and a 200,000-block one fails outright.
- * So this walks backwards in small windows and stops as soon as it has enough rows or
- * reaches the deployment block. Measured: 5,000 blocks returns in about 0.6s.
+ * The CC3 public RPC enforces a 10 second query timeout, and `eth_getLogs` over a wide
+ * range hits it: a 20,000 block window measured at 6.5s and a 200,000 block one fails
+ * outright. So this walks backwards in small windows and stops as soon as it has enough
+ * rows or reaches the deployment block. Measured: 5,000 blocks returns in about 0.6s.
  */
 const CHUNK = 5_000;
 const MAX_CHUNKS = 24;
@@ -128,5 +131,5 @@ export async function fetchVault() {
 
 export const short = (s: string, n = 6) => (s ? `${s.slice(0, n + 2)}…${s.slice(-4)}` : '');
 
-export const usdc = (v: bigint) =>
+export const usdc = (v: bigint | string) =>
   (Number(v) / 1e6).toLocaleString(undefined, { maximumFractionDigits: 2 });

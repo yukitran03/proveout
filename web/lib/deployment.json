@@ -4,5 +4,24 @@
   "testUsdc": "0xD40002aA8a8faDd14723b90690051a368232654e",
   "sourceRegistry": "0x5995bdC12087884B5766433c59eb42b8EbB3C50D",
   "deployBlock": 5480951,
-  "creditcoinChainId": 102031
+  "creditcoinChainId": 102031,
+  "repoUrl": "https://github.com/yukitran03/proveout",
+  "transactions": {
+    "release": {
+      "settlementTx": "0x9a3c9b1d0a327cff81ba85f3456abfcf0ee810a1a8a69f8e2451665b9a2c1874",
+      "sourceTx": "0xa8b9f6fc06cc9a6513e1754b3c04295e224b04545d8c64616b794e14e1d7b578",
+      "paidToBuilder": "1200000000"
+    },
+    "challenge": {
+      "settlementTx": "0x6713f5e66d54554df8bf2603221300a890ae32bad8aa60de33015c92712a8966",
+      "sourceTx": "0x31ba9002185e45d8ad0573a94fed4dca0e9a6d98317cee204e75f95b1137555a",
+      "challenger": "0xA0356B8011B63990978f2a7CCc389c3769d092Ea",
+      "refundedToBuyer": "1100000000",
+      "bountyToChallenger": "100000000"
+    },
+    "replay": {
+      "settlementTx": "0xc4738c2976693c67365a8662923dd30e2c7dbc3d8048014ebd972bdd51a92836",
+      "revertReason": "execution reverted: \"Query already processed\""
+    }
+  }
 }
