@@ -21,7 +21,8 @@
     "deploy": "tsx worker/src/deploy.ts",
     "e2e": "tsx worker/src/e2e.ts",
     "worker": "tsx worker/src/listen.ts",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "finalize": "tsx worker/src/finalize.ts"
   },
   "devDependencies": {
     "@types/node": "^22.20.2"

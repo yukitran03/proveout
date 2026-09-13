@@ -1,20 +1,53 @@
+import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
+import { join } from 'node:path';
 import { ContractFactory, ethers } from 'ethers';
 import { artifact } from './artifacts.js';
 import {
   CC3_CHAIN_ID,
   CC3_RPC,
+  ROOT,
   SEPOLIA_RPC,
   SOURCE_CHAIN_KEY,
   SOURCE_EVM_CHAIN_ID,
   need,
-  writeDeployment,
 } from './env.js';
+
+/**
+ * Deploys both halves, and is safe to run repeatedly.
+ *
+ * It deploys per chain and records each result immediately, because the two faucets this
+ * project depends on are independent and land at different times. A run with only one
+ * chain funded gets that half deployed and says plainly what is still missing, rather than
+ * refusing to do the half it can. A second run reuses what already exists instead of
+ * orphaning it.
+ */
 
 const BOND_BPS = 2_000; // builder stakes 20% of the job amount
 const BOUNTY_BPS = 5_000; // a successful challenger takes half of that bond
 
 export const TOPIC_COMPLETED = ethers.id('WorkCompleted(bytes32,bytes32,address,bytes32)');
 export const TOPIC_FAILED = ethers.id('WorkFailed(bytes32,bytes32)');
+
+const PATH = join(ROOT, 'deployments', 'cc3-testnet.json');
+
+type Partial_ = {
+  network?: { creditcoinChainId: number; sourceChainKey: number; sourceEvmChainId: number };
+  workOracle?: string;
+  testUsdc?: string;
+  sourceRegistry?: string;
+  jobEscrow?: string;
+  deployedAt?: string;
+  deployer?: string;
+};
+
+function load(): Partial_ {
+  return existsSync(PATH) ? (JSON.parse(readFileSync(PATH, 'utf8')) as Partial_) : {};
+}
+
+function save(d: Partial_) {
+  mkdirSync(join(ROOT, 'deployments'), { recursive: true });
+  writeFileSync(PATH, JSON.stringify(d, null, 2) + '\n');
+}
 
 async function deploy(name: string, signer: ethers.Signer, args: unknown[] = []) {
   const { abi, bytecode } = artifact(name);
@@ -35,50 +68,89 @@ async function main() {
   const cc3Id = Number((await cc3.getNetwork()).chainId);
   if (cc3Id !== CC3_CHAIN_ID) throw new Error(`expected CC3 chain ${CC3_CHAIN_ID}, got ${cc3Id}`);
   const sepId = Number((await sepolia.getNetwork()).chainId);
-  if (sepId !== SOURCE_EVM_CHAIN_ID) throw new Error(`expected source chain ${SOURCE_EVM_CHAIN_ID}, got ${sepId}`);
+  if (sepId !== SOURCE_EVM_CHAIN_ID) {
+    throw new Error(`expected source chain ${SOURCE_EVM_CHAIN_ID}, got ${sepId}`);
+  }
 
   const ctc = await cc3.getBalance(onCc3.address);
   const eth = await sepolia.getBalance(onSepolia.address);
   console.log(`deployer ${onCc3.address}`);
-  console.log(`  CC3 balance     ${ethers.formatEther(ctc)} CTC`);
-  console.log(`  Sepolia balance ${ethers.formatEther(eth)} ETH`);
-  if (ctc === 0n) throw new Error('CC3 balance is zero — fund from the Creditcoin Discord faucet');
-  if (eth === 0n) throw new Error('Sepolia balance is zero — fund from a Sepolia faucet');
+  console.log(`  CC3     ${ethers.formatEther(ctc)} CTC`);
+  console.log(`  Sepolia ${ethers.formatEther(eth)} ETH`);
 
-  console.log('\nSepolia (source chain):');
-  const oracle = await deploy('WorkOracle', onSepolia);
+  const d = load();
+  d.network = { creditcoinChainId: cc3Id, sourceChainKey: SOURCE_CHAIN_KEY, sourceEvmChainId: sepId };
+  d.deployer = onCc3.address;
 
-  console.log('\nCreditcoin CC3 (settlement chain):');
-  const usdc = await deploy('TestUSDC', onCc3);
-  const registry = await deploy('SourceRegistry', onCc3);
-  const escrow = await deploy('JobEscrow', onCc3, [usdc.address, registry.address, BOND_BPS, BOUNTY_BPS]);
+  // ------------------------------------------------- source chain (Sepolia)
+  if (d.workOracle && (await sepolia.getCode(d.workOracle)) !== '0x') {
+    console.log(`\nSepolia: reusing WorkOracle at ${d.workOracle}`);
+  } else if (eth > 0n) {
+    console.log('\nSepolia (source chain):');
+    d.workOracle = (await deploy('WorkOracle', onSepolia)).address;
+    d.deployedAt = new Date().toISOString();
+    save(d);
+  } else {
+    console.log('\nSepolia: SKIPPED, balance is zero');
+  }
 
-  console.log('\nregistering the Sepolia oracle as a trusted source...');
-  const tx = await (registry.contract as any).registerSource(oracle.address, {
-    registered: false,
-    chainKey: SOURCE_CHAIN_KEY,
-    evmChainId: SOURCE_EVM_CHAIN_ID,
-    topic0Completed: TOPIC_COMPLETED,
-    topic0Failed: TOPIC_FAILED,
-    completedJobIdTopic: 1,
-    completedCriteriaTopic: 2,
-    completedBuilderTopic: 3,
-    failedJobIdTopic: 1,
-    completedTopicCount: 4,
-    failedTopicCount: 3,
-  });
-  await tx.wait();
-  console.log(`  registerSource ${tx.hash}`);
+  // -------------------------------------------- settlement chain (CC3)
+  const cc3Done = d.jobEscrow && (await cc3.getCode(d.jobEscrow)) !== '0x';
+  if (cc3Done) {
+    console.log(`Creditcoin: reusing JobEscrow at ${d.jobEscrow}`);
+  } else if (ctc === 0n) {
+    console.log('Creditcoin: SKIPPED, balance is zero');
+  } else if (!d.workOracle) {
+    console.log('Creditcoin: SKIPPED, the source oracle must exist first');
+  } else {
+    console.log('\nCreditcoin CC3 (settlement chain):');
+    const usdc = await deploy('TestUSDC', onCc3);
+    const registry = await deploy('SourceRegistry', onCc3);
+    const escrow = await deploy('JobEscrow', onCc3, [
+      usdc.address,
+      registry.address,
+      BOND_BPS,
+      BOUNTY_BPS,
+    ]);
 
-  writeDeployment({
-    network: { creditcoinChainId: cc3Id, sourceChainKey: SOURCE_CHAIN_KEY, sourceEvmChainId: sepId },
-    workOracle: oracle.address,
-    testUsdc: usdc.address,
-    sourceRegistry: registry.address,
-    jobEscrow: escrow.address,
-    deployedAt: new Date().toISOString(),
-    deployer: onCc3.address,
-  });
+    console.log('registering the Sepolia oracle as a trusted source...');
+    const tx = await (registry.contract as any).registerSource(d.workOracle, {
+      registered: false,
+      chainKey: SOURCE_CHAIN_KEY,
+      evmChainId: SOURCE_EVM_CHAIN_ID,
+      topic0Completed: TOPIC_COMPLETED,
+      topic0Failed: TOPIC_FAILED,
+      completedJobIdTopic: 1,
+      completedCriteriaTopic: 2,
+      completedBuilderTopic: 3,
+      failedJobIdTopic: 1,
+      completedTopicCount: 4,
+      failedTopicCount: 3,
+    });
+    await tx.wait();
+    console.log(`  registerSource ${tx.hash}`);
+
+    d.testUsdc = usdc.address;
+    d.sourceRegistry = registry.address;
+    d.jobEscrow = escrow.address;
+    d.deployedAt = new Date().toISOString();
+    save(d);
+  }
+
+  save(d);
+  const missing = [
+    !d.workOracle && 'WorkOracle on Sepolia (fund the deployer with Sepolia ETH)',
+    !d.jobEscrow && 'JobEscrow on CC3 (fund the deployer with CTC from the Discord faucet)',
+  ].filter(Boolean);
+
+  console.log(`\ndeployment record: ${PATH}`);
+  if (missing.length) {
+    console.log('\nINCOMPLETE. Still missing:');
+    for (const m of missing) console.log(`  - ${m}`);
+    console.log('\nRe-run `npm run deploy` once funded; existing contracts are reused.');
+    process.exit(2);
+  }
+  console.log('\nComplete. Next: npm run e2e');
 }
 
 main().catch((e) => {

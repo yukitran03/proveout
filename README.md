@@ -15,11 +15,20 @@ Creditcoin transaction. No oracle operator, no arbiter, no human pressing approv
 | Contracts | built, `forge build` clean on solc 0.8.30 |
 | Tests | **46 passing, 0 failing**, including a 6144-call invariant run |
 | Attestcoin integration | **verified live** against the real precompile on CC3 Testnet — see below |
-| Deployment + demo transactions | **not yet run** — needs a funded testnet wallet |
+| Deployment + demo transactions | see the block below |
 
-This table is the honest state of the repository. There are no contract addresses or
-transaction hashes below yet, because none exist yet. Nothing here is placeheld with a
-number that was never produced.
+This table is the honest state of the repository. No contract address or transaction hash
+appears anywhere in this repo until it has actually been produced — nothing is placeheld
+with a number that was never run.
+
+<!-- BEGIN:DEPLOYMENT -->
+## Deployed
+
+_Not deployed yet._ Everything above this line is reproducible offline; run
+`npm run deploy && npm run e2e && npm run finalize` with a funded wallet and this section
+fills itself in from `deployments/cc3-testnet.json`. It is generated, never hand-edited,
+so a redeployment cannot leave a stale address behind in the docs.
+<!-- END:DEPLOYMENT -->
 
 ### The integration is already proved, without a deployment
 
