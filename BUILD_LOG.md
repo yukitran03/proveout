@@ -238,12 +238,11 @@ The plan named three repos to clone for the front end. All three are **Sui/Move*
 and none has a `package.json` at its root. Retrofitting a Sui dApp onto an EVM escrow
 would have cost more than it saved, so the layout ideas were taken — stepper console, hero
 with three steps, table with status badges and truncated hashes — and the code is original.
-Recorded in `docs/credits.md`.
 
 ## Step 5 — docs — **DONE**
 
 `README.md`, `docs/attestcoin-integration.md`, `docs/technical-spec.md`,
-`docs/threat-model.md`, `docs/credits.md`, and this file.
+`docs/threat-model.md`, and this file.
 
 Every address and transaction hash in the README is **generated** by `npm run finalize`
 from `deployments/cc3-testnet.json`. Nothing is typed by hand, so a redeployment cannot

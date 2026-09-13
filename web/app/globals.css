@@ -1,15 +1,13 @@
 /*
   ProveOut - visual system.
 
-  Built on widely used public conventions rather than a bespoke identity: shadcn's neutral
-  token palette expressed in oklch, Tailwind's spacing scale, and Geist for both the sans
-  and the mono. Written as plain CSS because this is a two page site, and carrying Tailwind
-  and a component library to render it would be cost without benefit.
+  A neutral greyscale ground in oklch, one narrow column, mono labels in uppercase at wide
+  tracking, and small muted body text. Plain CSS on purpose: this is a two page site, and a
+  utility framework or component library would be weight without benefit.
 
-  Status colours come from the Astryx design system's data ramps (shamrock and red) rather
-  than being invented, so proved and refused read as part of one system. They are semantic
-  only and never decorative: this page is an evidence record, and the one thing a reader
-  must be able to do at a glance is tell a settled job from a refused one.
+  Status colour is semantic only and never decorative. This page is an evidence record, and
+  the one thing a reader must be able to do at a glance is tell a settled job from a
+  refused one.
 */
 
 :root {
@@ -23,7 +21,7 @@
   --primary: oklch(0.205 0 0);
   --primary-foreground: oklch(0.985 0 0);
 
-  /* Astryx data ramps, used semantically. */
+  /* Status ramps. Semantic only. */
   --proved: #138546;
   --proved-line: color-mix(in srgb, #138546 40%, transparent);
   --proved-bg: color-mix(in srgb, #138546 6%, transparent);
