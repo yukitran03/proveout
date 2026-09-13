@@ -39,6 +39,7 @@ const webEnv = [
   `NEXT_PUBLIC_JOB_ESCROW=${d.jobEscrow}`,
   `NEXT_PUBLIC_WORK_ORACLE=${d.workOracle}`,
   `NEXT_PUBLIC_TEST_USDC=${d.testUsdc}`,
+  `NEXT_PUBLIC_DEPLOY_BLOCK=${d.deployBlock ?? 0}`,
   '',
 ].join('\n');
 writeFileSync(join(ROOT, 'web', '.env.production'), webEnv);

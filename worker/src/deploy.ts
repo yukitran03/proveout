@@ -33,6 +33,7 @@ const PATH = join(ROOT, 'deployments', 'cc3-testnet.json');
 type Partial_ = {
   network?: { creditcoinChainId: number; sourceChainKey: number; sourceEvmChainId: number };
   workOracle?: string;
+  deployBlock?: number;
   testUsdc?: string;
   sourceRegistry?: string;
   jobEscrow?: string;
@@ -133,6 +134,9 @@ async function main() {
     d.testUsdc = usdc.address;
     d.sourceRegistry = registry.address;
     d.jobEscrow = escrow.address;
+    // Recorded so the console never scans below it. The CC3 RPC enforces a 10-second
+    // query timeout and a wide eth_getLogs range hits it, so the floor is not cosmetic.
+    d.deployBlock = (await (escrow.contract as any).deploymentTransaction()?.wait())?.blockNumber;
     d.deployedAt = new Date().toISOString();
     save(d);
   }

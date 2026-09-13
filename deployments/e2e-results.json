@@ -1,0 +1,43 @@
+{
+  "deployment": {
+    "network": {
+      "creditcoinChainId": 102031,
+      "sourceChainKey": 1,
+      "sourceEvmChainId": 11155111
+    },
+    "deployer": "0x3Ef919342928307ABdCc9ec702f6f3c4f34f019c",
+    "workOracle": "0xD40002aA8a8faDd14723b90690051a368232654e",
+    "deployedAt": "2026-09-13T13:19:16.440Z",
+    "testUsdc": "0xD40002aA8a8faDd14723b90690051a368232654e",
+    "sourceRegistry": "0x5995bdC12087884B5766433c59eb42b8EbB3C50D",
+    "jobEscrow": "0x6Ecf0f01DDE2b1872E6EA131c41De85e6a285BB6"
+  },
+  "scenarios": {
+    "release": {
+      "jobId": "0x6efd8319edd94b11544f7416ee80b502e1bb227fb3d7a7e4d3c697c62455d683",
+      "sourceTx": "0xa8b9f6fc06cc9a6513e1754b3c04295e224b04545d8c64616b794e14e1d7b578",
+      "sourceTxUrl": "https://sepolia.etherscan.io/tx/0xa8b9f6fc06cc9a6513e1754b3c04295e224b04545d8c64616b794e14e1d7b578",
+      "settlementTx": "0x9a3c9b1d0a327cff81ba85f3456abfcf0ee810a1a8a69f8e2451665b9a2c1874",
+      "settlementTxUrl": "https://creditcoin-testnet.blockscout.com/tx/0x9a3c9b1d0a327cff81ba85f3456abfcf0ee810a1a8a69f8e2451665b9a2c1874",
+      "paidToBuilder": "1200000000",
+      "status": 1
+    },
+    "challenge": {
+      "jobId": "0x014e8bb7bed3b015aa7ba25e96042927caac7807d5b3bc419cc24fd14e2d79d4",
+      "challenger": "0xA0356B8011B63990978f2a7CCc389c3769d092Ea",
+      "sourceTx": "0x31ba9002185e45d8ad0573a94fed4dca0e9a6d98317cee204e75f95b1137555a",
+      "sourceTxUrl": "https://sepolia.etherscan.io/tx/0x31ba9002185e45d8ad0573a94fed4dca0e9a6d98317cee204e75f95b1137555a",
+      "settlementTx": "0x6713f5e66d54554df8bf2603221300a890ae32bad8aa60de33015c92712a8966",
+      "settlementTxUrl": "https://creditcoin-testnet.blockscout.com/tx/0x6713f5e66d54554df8bf2603221300a890ae32bad8aa60de33015c92712a8966",
+      "refundedToBuyer": "1100000000",
+      "bountyToChallenger": "100000000",
+      "status": 1
+    },
+    "replay": {
+      "reusedProofFrom": "0xa8b9f6fc06cc9a6513e1754b3c04295e224b04545d8c64616b794e14e1d7b578",
+      "settlementTx": "0xc4738c2976693c67365a8662923dd30e2c7dbc3d8048014ebd972bdd51a92836",
+      "settlementTxUrl": "https://creditcoin-testnet.blockscout.com/tx/0xc4738c2976693c67365a8662923dd30e2c7dbc3d8048014ebd972bdd51a92836",
+      "revertReason": "execution reverted: \"Query already processed\""
+    }
+  }
+}

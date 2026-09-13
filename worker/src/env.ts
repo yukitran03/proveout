@@ -49,6 +49,7 @@ export type Deployment = {
   testUsdc: string;
   sourceRegistry: string;
   jobEscrow: string;
+  deployBlock?: number;
   deployedAt: string;
   deployer: string;
 };

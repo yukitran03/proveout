@@ -24,14 +24,27 @@ with a number that was never run.
 <!-- BEGIN:DEPLOYMENT -->
 ## Deployed
 
-_Not deployed yet._ Everything above this line is reproducible offline; run
-`npm run deploy && npm run e2e && npm run finalize` with a funded wallet and this section
-fills itself in from `deployments/cc3-testnet.json`. It is generated, never hand-edited,
-so a redeployment cannot leave a stale address behind in the docs.
+| Contract | Chain | Address |
+|---|---|---|
+| `JobEscrow` | Creditcoin CC3 Testnet | [`0x6Ecf0f01DDE2b1872E6EA131c41De85e6a285BB6`](https://creditcoin-testnet.blockscout.com/address/0x6Ecf0f01DDE2b1872E6EA131c41De85e6a285BB6) |
+| `SourceRegistry` | Creditcoin CC3 Testnet | [`0x5995bdC12087884B5766433c59eb42b8EbB3C50D`](https://creditcoin-testnet.blockscout.com/address/0x5995bdC12087884B5766433c59eb42b8EbB3C50D) |
+| `TestUSDC` | Creditcoin CC3 Testnet | [`0xD40002aA8a8faDd14723b90690051a368232654e`](https://creditcoin-testnet.blockscout.com/address/0xD40002aA8a8faDd14723b90690051a368232654e) |
+| `WorkOracle` | Ethereum Sepolia | [`0xD40002aA8a8faDd14723b90690051a368232654e`](https://sepolia.etherscan.io/address/0xD40002aA8a8faDd14723b90690051a368232654e) |
+
+### The three transactions
+
+| # | What it proves | Source transaction (Sepolia) | Settlement (Creditcoin) |
+|---|---|---|---|
+| 1 | A proved `WorkCompleted` pays the builder 1,200 tUSDC | [`0xa8b9f6fc06cc…`](https://sepolia.etherscan.io/tx/0xa8b9f6fc06cc9a6513e1754b3c04295e224b04545d8c64616b794e14e1d7b578) | [`0x9a3c9b1d0a32…`](https://creditcoin-testnet.blockscout.com/tx/0x9a3c9b1d0a327cff81ba85f3456abfcf0ee810a1a8a69f8e2451665b9a2c1874) |
+| 2 | A proved `WorkFailed`, submitted by [`0xA0356B80…`](https://creditcoin-testnet.blockscout.com/address/0xA0356B8011B63990978f2a7CCc389c3769d092Ea) — **neither the buyer nor the builder** — refunds 1,100 tUSDC and pays that wallet a 100 tUSDC bounty | [`0x31ba9002185e…`](https://sepolia.etherscan.io/tx/0x31ba9002185e45d8ad0573a94fed4dca0e9a6d98317cee204e75f95b1137555a) | [`0x6713f5e66d54…`](https://creditcoin-testnet.blockscout.com/tx/0x6713f5e66d54554df8bf2603221300a890ae32bad8aa60de33015c92712a8966) |
+| 3 | Replaying proof #1 is refused on-chain (`execution reverted: "Query already processed"`) | — | [`0xc4738c297669…`](https://creditcoin-testnet.blockscout.com/tx/0xc4738c2976693c67365a8662923dd30e2c7dbc3d8048014ebd972bdd51a92836) |
+
+_Deployed 2026-09-13T13:19:16.440Z by `0x3Ef919342928307ABdCc9ec702f6f3c4f34f019c` · CC3 chain id 102031 · source chain key 1._
 <!-- END:DEPLOYMENT -->
 
-### The integration is already proved, without a deployment
+### Check the integration yourself, without a wallet
 
+The transactions above are the system running. If you would rather not take them on trust,
 `spikes/spike1_prove.ts` calls the live Block Prover precompile at
 `0x0000000000000000000000000000000000000FD2` on Creditcoin CC3 Testnet with a real proof of
 a real Ethereum Sepolia transaction, and reads its receipt back:
