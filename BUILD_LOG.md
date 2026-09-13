@@ -207,7 +207,7 @@ Attestation waits were 7–9 minutes each, matching the documented behaviour.
 
 ## Step 4 — web — **DONE**
 
-Live: https://web-phuoap80r-yukitran03s-projects.vercel.app
+Live: https://proveout.vercel.app
 
 The console reads chain logs at request time. No indexer, no cache, no fixtures. Verified
 against the deployment: it renders the two real jobs with `Released` and `Refunded`
