@@ -29,6 +29,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <nav>
               <Link href="/">Overview</Link>
               <Link href="/console">Console</Link>
+              <Link href="/verify">Verify</Link>
               <a href={EXPLORER} target="_blank" rel="noreferrer">
                 Explorer
               </a>

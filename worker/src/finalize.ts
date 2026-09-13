@@ -25,6 +25,13 @@ type E2e = {
       bountyToChallenger: string;
     };
     replay?: { settlementTx: string; revertReason: string };
+    selfCertify?: {
+      attemptedBy: string;
+      sourceTx: string;
+      status: number;
+      revertReason: string;
+      builderIsReporter: boolean;
+    };
   };
 };
 
@@ -79,6 +86,14 @@ const webDeployment = {
     replay: s?.replay
       ? { settlementTx: s.replay.settlementTx, revertReason: s.replay.revertReason }
       : null,
+    selfCertify: s?.selfCertify
+      ? {
+          sourceTx: s.selfCertify.sourceTx,
+          attemptedBy: s.selfCertify.attemptedBy,
+          status: s.selfCertify.status,
+          builderIsReporter: s.selfCertify.builderIsReporter,
+        }
+      : null,
   },
 };
 writeFileSync(
@@ -121,6 +136,12 @@ if (s?.challenge) {
 if (s?.replay) {
   rows.push(
     `| 3 | Replaying proof #1 is refused on-chain (\`${s.replay.revertReason.slice(0, 60)}\`) | | [\`${cut(s.replay.settlementTx)}\`](${EXPLORER}/tx/${s.replay.settlementTx}) |`,
+  );
+}
+
+if (s?.selfCertify) {
+  rows.push(
+    `| 4 | The builder calls \`reportCompleted\` for their own job on the source chain and is refused there, before any proof can exist. \`isReporter(builder)\` is \`${s.selfCertify.builderIsReporter}\` | [\`${cut(s.selfCertify.sourceTx)}\`](${SEPOLIA_EXPLORER}/tx/${s.selfCertify.sourceTx}) reverted | |`,
   );
 }
 

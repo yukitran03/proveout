@@ -13,7 +13,7 @@ Creditcoin transaction. No oracle operator, no arbiter, no human pressing approv
 | | |
 |---|---|
 | Contracts | built, `forge build` clean on solc 0.8.30 |
-| Tests | **46 passing, 0 failing**, including a 6144-call invariant run |
+| Tests | **97 passing, 0 failing**, including a 6144-call invariant run |
 | Attestcoin integration | **verified live** against the real precompile on CC3 Testnet — see below |
 | Deployment + demo transactions | see the block below |
 
@@ -108,6 +108,10 @@ being something the beneficiary curates.
 
 Read this before deciding how much to believe the rest.
 
+- **The source oracle is trusted within its own scope.** Whoever holds a reporter role on
+  `WorkOracle` decides what is provable. ProveOut narrows trust to one named contract with a
+  named reporter set, and a builder cannot certify their own work. It does not eliminate
+  trust in the source, and no proof system can.
 - **Attestcoin proves inclusion, not exclusion.** It can prove a transaction happened. It
   cannot prove no other transaction happened. So ProveOut does **not** make hiding a
   failure impossible — it makes hiding one *detectable and expensive*. That is the entire
@@ -165,7 +169,7 @@ forever, or hiding one until the clock ran out would be a winning strategy.
 ## Tests
 
 ```
-Ran 4 test suites: 46 tests passed, 0 failed, 0 skipped
+Ran 6 test suites: 97 tests passed, 0 failed, 0 skipped
 InvariantTest invariants (runs: 64, calls: 6144, reverts: 0)
   [PASS] invariant_vaultIsAlwaysSolvent
   [PASS] invariant_payoutsNeverExceedDeposits
@@ -181,6 +185,8 @@ Tests are named as claims rather than chores. The ones that carry the most weigh
 - `test_anyone_canForceRefund_withFailureProof` — the adversarial-evidence property
 - `test_release_isRefused_whenProvedChainIdIsNotTheRegisteredChain` — cross-chain address collision
 - `test_replay_isRefused_whenTheSameProofIsSubmittedTwice`
+- `test_builder_cannotCertifyTheirOwnWork` — the source-side bypass that made every gate below it decorative
+- `test_stranger_cannotBurnAnHonestBuildersBond`
 - `test_releaseAndRefundWindows_neverOverlap`
 - `test_escrow_hasNoAdminAbleToTouchUserFunds`
 

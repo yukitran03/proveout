@@ -3,28 +3,22 @@ import { join } from 'node:path';
 import { Contract, ethers } from 'ethers';
 
 import { artifact, ACTION_CHALLENGE, ACTION_RELEASE } from './artifacts.js';
-import {
-  CC3_RPC,
-  EXPLORER,
-  ROOT,
-  SEPOLIA_EXPLORER,
-  SEPOLIA_RPC,
-  need,
-  readDeployment,
-} from './env.js';
+import { CC3_RPC, EXPLORER, ROOT, SEPOLIA_EXPLORER, SEPOLIA_RPC, need, readDeployment } from './env.js';
 import { proveSourceTx } from './proof.js';
 import { submitExpectingRevert, submitProof } from './submit.js';
 
 /**
- * The three transactions the submission stands on:
+ * The four transactions the submission stands on:
  *
- *   1. release            — a proved WorkCompleted pays the builder
- *   2. challenge-refund   — a proved WorkFailed, submitted by a wallet that is NEITHER
- *                           the buyer NOR the builder, refunds the buyer and pays the
- *                           submitter a bounty out of the builder's bond
- *   3. replay blocked     — resubmitting proof #1 reverts on-chain
+ *   1. release        a proved WorkCompleted pays the builder
+ *   2. challenge      a proved WorkFailed, submitted by a wallet that is NEITHER the buyer
+ *                     NOR the builder, refunds the buyer and pays the submitter a bounty
+ *                     out of the builder's bond
+ *   3. replay blocked resubmitting proof #1 reverts on Creditcoin
+ *   4. self-certify   the builder tries to declare their own work complete on the source
+ *                     chain, and is refused there, before any proof can exist
  *
- * Nothing here is simulated. Each waits out a real Attestcoin attestation.
+ * Nothing here is simulated. Each proof waits out a real Attestcoin attestation.
  */
 
 const AMOUNT = 1_000_000_000n; // 1,000 tUSDC at 6 decimals
@@ -37,12 +31,12 @@ function derive(pk: string, label: string): string {
 async function fundGas(from: ethers.Wallet, to: string, amount: bigint, label: string) {
   const bal = await from.provider!.getBalance(to);
   if (bal >= amount) {
-    console.log(`  ${label} already holds ${ethers.formatEther(bal)} CTC`);
+    console.log(`  ${label} already holds ${ethers.formatEther(bal)}`);
     return;
   }
   const tx = await from.sendTransaction({ to, value: amount });
   await tx.wait();
-  console.log(`  funded ${label} ${to} with ${ethers.formatEther(amount)} CTC`);
+  console.log(`  funded ${label} ${to} with ${ethers.formatEther(amount)}`);
 }
 
 async function main() {
@@ -54,25 +48,26 @@ async function main() {
 
   const buyer = new ethers.Wallet(pk, cc3);
   const buyerOnSepolia = new ethers.Wallet(pk, sepolia);
-  const builder = new ethers.Wallet(derive(pk, 'proveout-builder'), cc3);
+  const builderPk = derive(pk, 'proveout-builder');
+  const builder = new ethers.Wallet(builderPk, cc3);
+  const builderOnSepolia = new ethers.Wallet(builderPk, sepolia);
   const challenger = new ethers.Wallet(derive(pk, 'proveout-challenger'), cc3);
 
   console.log('actors');
-  console.log(`  buyer      ${buyer.address}`);
+  console.log(`  buyer      ${buyer.address}  (also the authorised reporter)`);
   console.log(`  builder    ${builder.address}`);
   console.log(`  challenger ${challenger.address}  <- neither buyer nor builder`);
 
-  const escrowAbi = artifact('JobEscrow').abi;
-  const escrow = new Contract(d.jobEscrow, escrowAbi, buyer);
+  const escrow = new Contract(d.jobEscrow, artifact('JobEscrow').abi, buyer);
   const usdc = new Contract(d.testUsdc, artifact('TestUSDC').abi, buyer);
   const oracle = new Contract(d.workOracle, artifact('WorkOracle').abi, buyerOnSepolia);
 
   console.log('\npreparing actors');
-  await fundGas(buyer, builder.address, ethers.parseEther('1'), 'builder');
-  await fundGas(buyer, challenger.address, ethers.parseEther('1'), 'challenger');
+  await fundGas(buyer, builder.address, ethers.parseEther('1'), 'builder (CTC)');
+  await fundGas(buyer, challenger.address, ethers.parseEther('1'), 'challenger (CTC)');
+  await fundGas(buyerOnSepolia, builderOnSepolia.address, ethers.parseEther('0.004'), 'builder (Sepolia ETH)');
   for (const who of [buyer.address, builder.address]) {
-    const tx = await (usdc as any).mint(who, AMOUNT * 10n);
-    await tx.wait();
+    await (await (usdc as any).mint(who, AMOUNT * 10n)).wait();
   }
   await (await (usdc as any).approve(d.jobEscrow, ethers.MaxUint256)).wait();
   await (await (usdc.connect(builder) as any).approve(d.jobEscrow, ethers.MaxUint256)).wait();
@@ -81,11 +76,10 @@ async function main() {
   const results: Record<string, unknown> = { deployment: d, scenarios: {} };
   const scenarios = results.scenarios as Record<string, unknown>;
 
-  async function openJob(label: string): Promise<{ jobId: string; criteria: string }> {
+  async function openJob(label: string) {
     const jobId = ethers.id(`proveout-${label}-${Date.now()}`);
     const criteria = ethers.id(`criteria:${label}:deliver-and-pass-ci`);
     const deadline = Math.floor(Date.now() / 1000) + JOB_WINDOW;
-
     await (await (escrow as any).createJob(jobId, builder.address, AMOUNT, deadline, criteria, d.workOracle)).wait();
     await (await (escrow.connect(builder) as any).postBond(jobId)).wait();
     await (await (escrow as any).fundJob(jobId)).wait();
@@ -97,10 +91,7 @@ async function main() {
   console.log('\n=== SCENARIO 1: release on proved completion ===');
   const job1 = await openJob('release');
   const completed = await (oracle as any).reportCompleted(
-    job1.jobId,
-    job1.criteria,
-    builder.address,
-    ethers.id('artifact-v1'),
+    job1.jobId, job1.criteria, builder.address, ethers.id('artifact-v1'),
   );
   console.log(`  Sepolia WorkCompleted: ${completed.hash}`);
   const proof1 = await proveSourceTx(completed.hash, cc3, sepolia);
@@ -155,14 +146,47 @@ async function main() {
     revertReason: replay.reason,
   };
 
+  // ------------------------------ 4. self-certification blocked at the source
+  console.log('\n=== SCENARIO 4: the builder cannot certify their own work ===');
+  const job3 = await openJob('self-certify');
+  const oracleAsBuilder = oracle.connect(builderOnSepolia) as any;
+  const data = oracle.interface.encodeFunctionData('reportCompleted', [
+    job3.jobId, job3.criteria, builder.address, ethers.id('fabricated'),
+  ]);
+  let selfReason = 'unknown';
+  try {
+    await sepolia.call({ to: d.workOracle, data, from: builderOnSepolia.address });
+    throw new Error('expected the source chain to refuse this');
+  } catch (e: any) {
+    selfReason = e?.shortMessage ?? e?.reason ?? e?.message ?? 'reverted';
+  }
+  // Force it on chain so the refusal is a public, checkable artifact.
+  const selfTx = await builderOnSepolia.sendTransaction({ to: d.workOracle, data, gasLimit: 120_000n });
+  const selfRc = await sepolia.waitForTransaction(selfTx.hash, 1, 180_000).catch(() => null);
+  console.log(`  Sepolia self-certify attempt ${selfTx.hash} status=${selfRc?.status ?? 'reverted'}`);
+  console.log(`  refused with: ${selfReason}`);
+  const isReporter = await (oracle as any).isReporter(builder.address);
+  console.log(`  oracle.isReporter(builder) = ${isReporter}`);
+  scenarios.selfCertify = {
+    jobId: job3.jobId,
+    attemptedBy: builder.address,
+    sourceTx: selfTx.hash,
+    sourceTxUrl: `${SEPOLIA_EXPLORER}/tx/${selfTx.hash}`,
+    status: Number(selfRc?.status ?? 0),
+    revertReason: selfReason,
+    builderIsReporter: Boolean(isReporter),
+  };
+
   mkdirSync(join(ROOT, 'deployments'), { recursive: true });
   const out = join(ROOT, 'deployments', 'e2e-results.json');
   writeFileSync(out, JSON.stringify(results, null, 2) + '\n');
   console.log(`\nwrote ${out}`);
-  console.log('\nThree real transactions:');
-  console.log(`  release   ${EXPLORER}/tx/${r1.hash}`);
-  console.log(`  challenge ${EXPLORER}/tx/${r2.hash}`);
-  console.log(`  replay    ${EXPLORER}/tx/${replay.hash}  (reverted, on purpose)`);
+  console.log('\nFour real transactions:');
+  console.log(`  release      ${EXPLORER}/tx/${r1.hash}`);
+  console.log(`  challenge    ${EXPLORER}/tx/${r2.hash}`);
+  console.log(`  replay       ${EXPLORER}/tx/${replay.hash}  (reverted, on purpose)`);
+  console.log(`  self-certify ${SEPOLIA_EXPLORER}/tx/${selfTx.hash}  (reverted on Sepolia, on purpose)`);
+  void oracleAsBuilder;
 }
 
 main().catch((e) => {

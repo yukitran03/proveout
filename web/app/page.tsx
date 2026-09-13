@@ -25,6 +25,7 @@ function Hash({ hash, sepolia = false }: { hash: string; sepolia?: boolean }) {
 
 export default function Home() {
   const deployed = Boolean(JOB_ESCROW);
+  const hasRun = Boolean(TX?.release && TX?.challenge && TX?.replay);
 
   return (
     <>
@@ -34,10 +35,13 @@ export default function Home() {
         <p>
           A job escrow that releases or refunds on the strength of an event that happened on another
           chain, verified by the Attestcoin Block Prover inside a single Creditcoin transaction. No
-          oracle operator. No arbiter. Nobody pressing approve.
+          cross-chain oracle operator. No arbiter. Nobody pressing approve.
         </p>
         <div className="actions">
-          <Link className="btn" href="/console">
+          <Link className="btn" href="/verify">
+            Verify a proof yourself
+          </Link>
+          <Link className="btn ghost" href="/console">
             Open the console
           </Link>
           {REPO_URL ? (
@@ -48,13 +52,13 @@ export default function Home() {
         </div>
       </section>
 
-      {TX?.release && TX?.challenge && TX?.replay ? (
+      {hasRun ? (
         <section>
           <p className="eyebrow">On chain, not on a slide</p>
-          <h2>Three transactions that settle the argument.</h2>
+          <h2>Four transactions that settle the argument.</h2>
           <p>
-            Each one is a real Creditcoin transaction against the live Block Prover. Open any of
-            them in the explorer and check the receipt yourself.
+            Real transactions against the live Block Prover. Open any of them in the explorer, or
+            run the same verification yourself on the <Link href="/verify">verify page</Link>.
           </p>
 
           <div className="evidence">
@@ -65,18 +69,18 @@ export default function Home() {
               </div>
               <p className="claim">
                 A proved <code>WorkCompleted</code> paid the builder{' '}
-                <b>{usdc(TX.release.paidToBuilder)} tUSDC</b>, the payout plus the bond returned.
+                <b>{usdc(TX!.release!.paidToBuilder)} tUSDC</b>, the payout plus the bond returned.
                 The escrow checked the source event, its emitter, its chain and the receipt status
                 before releasing anything.
               </p>
               <div className="stack-sm">
                 <div className="hashline">
                   <span className="k">Settlement</span>
-                  <Hash hash={TX.release.settlementTx} />
+                  <Hash hash={TX!.release!.settlementTx} />
                 </div>
                 <div className="hashline">
                   <span className="k">Source</span>
-                  <Hash hash={TX.release.sourceTx} sepolia />
+                  <Hash hash={TX!.release!.sourceTx} sepolia />
                 </div>
               </div>
             </article>
@@ -87,28 +91,28 @@ export default function Home() {
                 <span className="badge b-refused">Refunded by a stranger</span>
               </div>
               <p className="claim">
-                A proved <code>WorkFailed</code>, submitted by{' '}
+                A proved <code>WorkFailed</code>, carried to Creditcoin by{' '}
                 <a
                   className="mono"
-                  href={`${EXPLORER}/address/${TX.challenge.challenger}`}
+                  href={`${EXPLORER}/address/${TX!.challenge!.challenger}`}
                   target="_blank"
                   rel="noreferrer"
                 >
-                  {short(TX.challenge.challenger, 8)}
+                  {short(TX!.challenge!.challenger, 8)}
                 </a>
                 , a wallet that is <b>neither the buyer nor the builder</b>. The buyer was refunded{' '}
-                {usdc(TX.challenge.refundedToBuyer)} tUSDC and that wallet was paid a{' '}
-                <b>{usdc(TX.challenge.bountyToChallenger)} tUSDC bounty</b> out of the builder&rsquo;s
-                bond. This is the one nobody else proves.
+                {usdc(TX!.challenge!.refundedToBuyer)} tUSDC and that wallet was paid a{' '}
+                <b>{usdc(TX!.challenge!.bountyToChallenger)} tUSDC bounty</b> out of the
+                builder&rsquo;s bond. This is the one nobody else proves.
               </p>
               <div className="stack-sm">
                 <div className="hashline">
                   <span className="k">Settlement</span>
-                  <Hash hash={TX.challenge.settlementTx} />
+                  <Hash hash={TX!.challenge!.settlementTx} />
                 </div>
                 <div className="hashline">
                   <span className="k">Source</span>
-                  <Hash hash={TX.challenge.sourceTx} sepolia />
+                  <Hash hash={TX!.challenge!.sourceTx} sepolia />
                 </div>
               </div>
             </article>
@@ -125,9 +129,29 @@ export default function Home() {
               </p>
               <div className="hashline">
                 <span className="k">Settlement</span>
-                <Hash hash={TX.replay.settlementTx} />
+                <Hash hash={TX!.replay!.settlementTx} />
               </div>
             </article>
+
+            {TX?.selfCertify ? (
+              <article className="ev refused">
+                <div className="head">
+                  <span className="n">04</span>
+                  <span className="badge b-refused">Refused at the source</span>
+                </div>
+                <p className="claim">
+                  The builder calling <code>reportCompleted</code> for their own job, trying to
+                  certify work nobody checked. The source chain refused it, before any proof could
+                  exist. <code>isReporter(builder)</code> is{' '}
+                  <b>{String(TX.selfCertify.builderIsReporter)}</b>. An earlier version of this
+                  oracle had no access control at all, which made every gate downstream decorative.
+                </p>
+                <div className="hashline">
+                  <span className="k">Source</span>
+                  <Hash hash={TX.selfCertify.sourceTx} sepolia />
+                </div>
+              </article>
+            ) : null}
           </div>
         </section>
       ) : null}
@@ -158,7 +182,7 @@ export default function Home() {
             <h3>Settle</h3>
             <p>
               A proved completion pays the builder. A proved failure refunds the buyer and pays
-              whoever submitted it a bounty out of the bond. Verification and payout happen in the
+              whoever carried it a bounty out of the bond. Verification and payout happen in the
               same transaction.
             </p>
           </div>
@@ -180,7 +204,25 @@ export default function Home() {
         <p className="strong">
           <code>challengeFailure</code> is callable by any address on earth, and it pays. The bounty
           comes out of the bond of the party that failed, so the cost of being caught falls on
-          whoever failed. Evidence stops being something the beneficiary curates.
+          whoever failed. The party who stands to lose cannot suppress the outcome, because they are
+          not the only one who can carry it.
+        </p>
+      </section>
+
+      <section>
+        <p className="eyebrow">What is actually trusted</p>
+        <h2>We do not claim to have removed the source of the fact.</h2>
+        <p>
+          Attestcoin proves what the source chain said. Who is allowed to speak on the source chain
+          is an application decision, and pretending otherwise would be the kind of claim that falls
+          apart under one question. Here, <code>WorkOracle</code> has a named reporter set, and a
+          builder cannot certify their own work: transaction 04 above is that refusal, on chain.
+        </p>
+        <p>
+          What ProveOut removes is everything between the fact and the money. No relayer you have to
+          trust. No arbiter. No approval step. And once an outcome exists on the source chain, the
+          party it goes against cannot stop it reaching the escrow, because carrying it is open to
+          everyone and paying for it is automatic.
         </p>
       </section>
 
@@ -199,8 +241,8 @@ if (receipt.receiptStatus != 1)
           in that attack is genuine.
         </p>
         <p className="tiny">
-          It is the pattern Gluwa&rsquo;s own reference contract uses. We did not invent it. We
-          refused to skip it.
+          You can see both answers separately on the <Link href="/verify">verify page</Link>: whether
+          the precompile accepted the proof, and whether the transaction it proves actually succeeded.
         </p>
       </section>
 
@@ -260,12 +302,6 @@ if (receipt.receiptStatus != 1)
             </dd>
           </div>
         </div>
-        <p className="tiny">
-          The two addresses above that match are not a mistake. The first contract this deployer
-          created on Sepolia and the first it created on Creditcoin came from the same address at the
-          same nonce, so they landed in the same place on both chains. That collision is exactly what
-          gate G2b exists to reject.
-        </p>
       </section>
 
       <section>
@@ -277,6 +313,11 @@ if (receipt.receiptStatus != 1)
             It cannot prove that none happened. So ProveOut does not make hiding a failure
             impossible. It makes hiding one detectable and expensive. That is the whole promise of
             the challenge mechanism, and not a word more.
+          </li>
+          <li>
+            <b>The source oracle is trusted within its own scope.</b> Whoever holds a reporter role
+            decides what is provable. ProveOut narrows trust to one named contract with a named
+            reporter set. It does not eliminate it, and no proof system can.
           </li>
           <li>
             <b>TestUSDC is not USDC.</b> A six decimal demo token with an open mint and no value.

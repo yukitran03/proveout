@@ -4,7 +4,7 @@
 
 | Contract | Chain | Role |
 |---|---|---|
-| `WorkOracle.sol` | Ethereum Sepolia | Emits `WorkCompleted` / `WorkFailed`. No access control, by design. |
+| `WorkOracle.sol` | Ethereum Sepolia | Emits `WorkCompleted` / `WorkFailed`. Reporter-gated. |
 | `SourceRegistry.sol` | Creditcoin CC3 | Which emitters are trusted, and the exact shape of their events. |
 | `JobEscrow.sol` | Creditcoin CC3 | Holds funds; settles from proofs. Inherits `ASCBase`. |
 | `TestUSDC.sol` | Creditcoin CC3 | Six-decimal demo settlement asset, open mint. |
@@ -25,9 +25,29 @@ Deliberately specific names. Attestcoin's design guidance is explicit that a gen
 signature makes a query ambiguous: any contract emitting `Transfer` would satisfy a
 signature-only check.
 
-`WorkOracle` has no owner and no allowlist. A permissioned oracle would reintroduce exactly
-the trusted operator this project exists to remove. Authority lives in `SourceRegistry`
-deciding *which emitter address counts*, not in who is allowed to call the oracle.
+`WorkOracle` carries an owner-managed reporter set, and only a reporter may state an
+outcome. An earlier version was deliberately permissionless, on the reasoning that a
+permissioned oracle would reintroduce the trusted operator this project exists to remove.
+That was wrong: the registry was always the trust anchor, and leaving the oracle open did
+not remove an operator, it let the builder certify their own work and let any passer-by burn
+an honest builder's bond. See `docs/threat-model.md`.
+
+Permissionless participation lives on the settlement side instead, which is where it is
+worth something: carrying a proof to Creditcoin is open to every address, and carrying a
+failure pays a bounty out of the bond of whoever failed.
+
+## Source authority
+
+| Role | Held by | Can |
+|---|---|---|
+| Oracle owner | the deploying platform | appoint and revoke reporters, not report |
+| Reporter | whoever the owner appoints | state a job outcome on the source chain |
+| Registry owner | the deploying platform | add and remove trusted emitters |
+| Anyone | anyone | carry a proof to Creditcoin, and be paid for carrying a failure |
+
+The last reporter cannot be revoked. An oracle nobody can speak through would strand every
+job that depends on it in the deadline-refund path, and the builder would lose a bond for a
+failure that was not theirs.
 
 ## State machine
 
