@@ -24,7 +24,7 @@ with a number that was never run.
 <!-- BEGIN:DEPLOYMENT -->
 ## Deployed
 
-**Live console:** https://web-phuoap80r-yukitran03s-projects.vercel.app  
+**Live console:** https://proveout.vercel.app  
 **Repository:** https://github.com/yukitran03/proveout
 
 | Contract | Chain | Address |

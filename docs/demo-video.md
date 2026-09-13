@@ -42,7 +42,7 @@ npm run test
 
 Open these tabs, in this order, and leave them open:
 
-1. The live console — https://web-phuoap80r-yukitran03s-projects.vercel.app/console
+1. The live console — https://proveout.vercel.app/console
 2. Blockscout, the **challenge** transaction:
    `https://creditcoin-testnet.blockscout.com/tx/0x6713f5e66d54554df8bf2603221300a890ae32bad8aa60de33015c92712a8966`
 3. Blockscout, the **blocked replay**:

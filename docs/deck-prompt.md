@@ -168,7 +168,7 @@ admitting the boundary is what makes the rest credible.
 > Repeat the one-line thesis: Money moves when the work is proved — and anyone can prove it
 > failed.
 > Then, in monospace:
-> Live console · https://web-phuoap80r-yukitran03s-projects.vercel.app
+> Live console · https://proveout.vercel.app
 > Repository · https://github.com/yukitran03/proveout
 > Contracts · JobEscrow `0x6Ecf0f01DDE2b1872E6EA131c41De85e6a285BB6` on Creditcoin CC3 Testnet, chain id 102031
 > Include a QR code to the live console, bottom-right, small and unobtrusive.
@@ -181,7 +181,7 @@ Give it these verbatim if it asks. Do not improvise beyond them.
 
 | | |
 |---|---|
-| Live console | https://web-phuoap80r-yukitran03s-projects.vercel.app |
+| Live console | https://proveout.vercel.app |
 | Repository | https://github.com/yukitran03/proveout |
 | `JobEscrow` (CC3) | `0x6Ecf0f01DDE2b1872E6EA131c41De85e6a285BB6`, from block 5480951 |
 | `SourceRegistry` (CC3) | `0x5995bdC12087884B5766433c59eb42b8EbB3C50D` |
