@@ -22,9 +22,12 @@
     "e2e": "tsx worker/src/e2e.ts",
     "worker": "tsx worker/src/listen.ts",
     "typecheck": "tsc --noEmit",
-    "finalize": "tsx worker/src/finalize.ts"
+    "finalize": "tsx worker/src/finalize.ts",
+    "build:web": "npm --prefix web run build",
+    "deploy:web": "npm run finalize && npm run build:web && node scripts/deploy-web.mjs"
   },
   "devDependencies": {
-    "@types/node": "^22.20.2"
+    "@types/node": "^22.20.2",
+    "vercel": "^48.0.3"
   }
 }

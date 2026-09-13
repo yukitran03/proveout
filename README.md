@@ -201,11 +201,21 @@ npm run test
 npm run deploy      # WorkOracle → Sepolia; TestUSDC + Registry + Escrow → CC3
 npm run e2e         # the three demo transactions
 npm run worker      # optional: the relayer, watching Sepolia
+
+npm run finalize    # write the deployment into the README and the web build
+npm run deploy:web  # publish the console and move the stable alias onto it
 ```
 
 `npm run e2e` produces three real transactions — a release, a challenge-refund submitted by
 a wallet that is neither the buyer nor the builder, and a blocked replay — and writes them
-to `deployments/e2e-results.json`.
+to `deployments/e2e-results.json`. Run `npm run finalize` afterwards and every address
+and hash in this README and on the site updates itself from that record, so a redeploy
+cannot leave a stale one behind.
+
+`npm run deploy:web` exists because Vercel gives each deployment its own hashed hostname
+and does not move a project alias on its own. Publishing without re-aliasing leaves
+`proveout.vercel.app`, which is the URL every link points at, serving the previous build.
+It needs a Vercel token at `~/.config/hackathon-sprint/vercel.env`, outside the repository.
 
 Each proof waits out a real attestation, roughly 8–10 minutes on Sepolia. That delay is
 deliberate protocol behaviour, not slowness: it is what stops a source-chain reorg from
