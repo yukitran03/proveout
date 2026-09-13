@@ -44,6 +44,26 @@ const webEnv = [
 ].join('\n');
 writeFileSync(join(ROOT, 'web', '.env.production'), webEnv);
 writeFileSync(join(ROOT, 'web', '.env.local'), webEnv);
+
+// Also write a committed copy. These are public contract addresses, not secrets,
+// and Vercel does not upload gitignored .env files, so a build there would otherwise
+// come up with no contract configured at all.
+writeFileSync(
+  join(ROOT, 'web', 'lib', 'deployment.json'),
+  JSON.stringify(
+    {
+      jobEscrow: d.jobEscrow,
+      workOracle: d.workOracle,
+      testUsdc: d.testUsdc,
+      sourceRegistry: d.sourceRegistry,
+      deployBlock: d.deployBlock ?? 0,
+      creditcoinChainId: d.network.creditcoinChainId,
+    },
+    null,
+    2,
+  ) + '\n',
+);
+console.log('wrote web/lib/deployment.json');
 console.log('wrote web/.env.production and web/.env.local');
 
 // ----------------------------------------------------------------- README

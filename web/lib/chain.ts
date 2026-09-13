@@ -1,0 +1,132 @@
+import { Contract, JsonRpcProvider } from 'ethers';
+import deployment from './deployment.json';
+
+/**
+ * Addresses come from `deployment.json`, which `npm run finalize` generates from the
+ * deployment record. They are committed on purpose: they are public contract addresses,
+ * not secrets, and Vercel does not upload gitignored `.env` files — a build there would
+ * otherwise come up with no contract configured and silently render an empty console.
+ * An environment variable still wins, for pointing the same build at another deployment.
+ */
+export const CC3_RPC =
+  process.env.NEXT_PUBLIC_CREDITCOIN_RPC_URL ?? 'https://rpc.cc3-testnet.creditcoin.network';
+export const EXPLORER = 'https://creditcoin-testnet.blockscout.com';
+export const SEPOLIA_EXPLORER = 'https://sepolia.etherscan.io';
+export const PRECOMPILE = '0x0000000000000000000000000000000000000FD2';
+export const CC3_CHAIN_ID = 102031;
+
+export const JOB_ESCROW = process.env.NEXT_PUBLIC_JOB_ESCROW || deployment.jobEscrow || '';
+export const WORK_ORACLE = process.env.NEXT_PUBLIC_WORK_ORACLE || deployment.workOracle || '';
+export const TEST_USDC = process.env.NEXT_PUBLIC_TEST_USDC || deployment.testUsdc || '';
+
+/** Only the fragments the console reads. Kept minimal on purpose. */
+export const ESCROW_ABI = [
+  'event JobCreated(bytes32 indexed jobId, address indexed buyer, address indexed builder, uint128 amount, uint128 bond, uint64 deadline, bytes32 criteriaHash, address source)',
+  'event JobReleased(bytes32 indexed jobId, address indexed builder, uint128 amount, uint128 bond, bytes32 queryId)',
+  'event JobChallenged(bytes32 indexed jobId, address indexed challenger, uint128 refunded, uint128 bounty, bytes32 queryId)',
+  'event JobRefunded(bytes32 indexed jobId, address indexed buyer, uint128 amount, uint128 bond)',
+  'function getJob(bytes32) view returns (tuple(address buyer, address builder, address source, uint128 amount, uint128 bond, uint64 deadline, bytes32 criteriaHash, bool bondPosted, uint8 status))',
+  'function totalIn() view returns (uint256)',
+  'function totalOut() view returns (uint256)',
+  'function vaultSolvent() view returns (bool)',
+  'function BOND_BPS() view returns (uint16)',
+  'function BOUNTY_BPS() view returns (uint16)',
+];
+
+export const STATUS = ['None', 'Created', 'Funded', 'Released', 'Refunded'] as const;
+
+export type JobRow = {
+  jobId: string;
+  buyer: string;
+  builder: string;
+  amount: bigint;
+  bond: bigint;
+  deadline: number;
+  status: number;
+  createdTx: string;
+};
+
+export function provider() {
+  return new JsonRpcProvider(CC3_RPC, CC3_CHAIN_ID, { staticNetwork: true });
+}
+
+/** Block the escrow was deployed at; scanning below it is wasted work. */
+export const DEPLOY_BLOCK = Number(process.env.NEXT_PUBLIC_DEPLOY_BLOCK ?? deployment.deployBlock ?? 0);
+
+/**
+ * The CC3 public RPC enforces a 10-second query timeout, and `eth_getLogs` over a wide
+ * range hits it: a 20,000-block window took 6.5s and a 200,000-block one fails outright.
+ * So this walks backwards in small windows and stops as soon as it has enough rows or
+ * reaches the deployment block. Measured: 5,000 blocks returns in about 0.6s.
+ */
+const CHUNK = 5_000;
+const MAX_CHUNKS = 24;
+
+/**
+ * Reads jobs straight from chain logs. There is no indexer and no server cache: the page
+ * shows what the chain says, or it shows nothing.
+ */
+export async function fetchJobs(limit = 25): Promise<JobRow[]> {
+  if (!JOB_ESCROW) return [];
+  const p = provider();
+  const escrow = new Contract(JOB_ESCROW, ESCROW_ABI, p);
+  const head = await p.getBlockNumber();
+  const floor = Math.max(0, DEPLOY_BLOCK);
+
+  const created: any[] = [];
+  let to = head;
+  for (let i = 0; i < MAX_CHUNKS && to >= floor && created.length < limit; i++) {
+    const from = Math.max(floor, to - CHUNK);
+    try {
+      const batch = await escrow.queryFilter(escrow.filters.JobCreated!(), from, to);
+      created.unshift(...batch);
+    } catch {
+      // One slow window must not blank the whole page; keep what the others returned.
+    }
+    if (from === floor) break;
+    to = from - 1;
+  }
+
+  const recent = created.slice(-limit).reverse();
+
+  return Promise.all(
+    recent.map(async (log: any) => {
+      const jobId = log.args[0] as string;
+      const job = await escrow.getJob(jobId);
+      return {
+        jobId,
+        buyer: job.buyer as string,
+        builder: job.builder as string,
+        amount: job.amount as bigint,
+        bond: job.bond as bigint,
+        deadline: Number(job.deadline),
+        status: Number(job.status),
+        createdTx: log.transactionHash as string,
+      };
+    }),
+  );
+}
+
+export async function fetchVault() {
+  if (!JOB_ESCROW) return null;
+  const escrow = new Contract(JOB_ESCROW, ESCROW_ABI, provider());
+  const [totalIn, totalOut, solvent, bondBps, bountyBps] = await Promise.all([
+    escrow.totalIn(),
+    escrow.totalOut(),
+    escrow.vaultSolvent(),
+    escrow.BOND_BPS(),
+    escrow.BOUNTY_BPS(),
+  ]);
+  return {
+    totalIn: totalIn as bigint,
+    totalOut: totalOut as bigint,
+    solvent: solvent as boolean,
+    bondBps: Number(bondBps),
+    bountyBps: Number(bountyBps),
+  };
+}
+
+export const short = (s: string, n = 6) => (s ? `${s.slice(0, n + 2)}…${s.slice(-4)}` : '');
+
+export const usdc = (v: bigint) =>
+  (Number(v) / 1e6).toLocaleString(undefined, { maximumFractionDigits: 2 });

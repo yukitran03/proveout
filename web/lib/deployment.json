@@ -1,0 +1,8 @@
+{
+  "jobEscrow": "0x6Ecf0f01DDE2b1872E6EA131c41De85e6a285BB6",
+  "workOracle": "0xD40002aA8a8faDd14723b90690051a368232654e",
+  "testUsdc": "0xD40002aA8a8faDd14723b90690051a368232654e",
+  "sourceRegistry": "0x5995bdC12087884B5766433c59eb42b8EbB3C50D",
+  "deployBlock": 5480951,
+  "creditcoinChainId": 102031
+}
