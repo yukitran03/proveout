@@ -248,6 +248,54 @@ Every address and transaction hash in the README is **generated** by `npm run fi
 from `deployments/cc3-testnet.json`. Nothing is typed by hand, so a redeployment cannot
 leave a stale address behind in the docs — the failure the plan specifically warned about.
 
+
+## Final hour — deck, video, submission text
+
+### Deck
+
+`deck/slides.html`, twelve slides at 1280x720, rendered to PDF by `node deck/render.mjs`
+through Playwright and served from `web/public`. Live at
+**https://proveout.vercel.app/ProveOut-deck.pdf** (verified 200, `application/pdf`, 440 KB).
+
+Every figure on it comes from `docs/FACTS.md`, which is generated from the deployment record
+and the demo run. Nothing on a slide was typed from memory, which is the only way a deck
+survives a redeploy without quietly going stale.
+
+### Video
+
+Recorded with Playwright in one continuous page context, so it needed no ffmpeg to stitch,
+and captioned with a large overlay injected before each scene rather than narrated. A caption
+track costs nothing to re-record when a number changes; a voice track does not.
+
+Live at **https://proveout.vercel.app/demo.webm**.
+
+Eight scenes: the thesis, the live console, all four demo transactions on their explorers with
+the challenge held longest, a real proof run live on `/verify`, and the limitations card.
+
+### Submission text
+
+`docs/SUBMISSION.md` carries everything the form asks for, ready to paste: project name,
+sector, a 118-word description, a 196-word Attestcoin integration summary written in the order
+a judge scoring integration depth reads it, all four transaction hashes in full, every contract
+address, and the two country fields that are easy to miss.
+
+### One deliberate subtraction
+
+The delivery-source work from earlier in the session was **stashed rather than committed**. It
+adds a second kind of acceptance criterion: an on-chain transfer proved from an ordinary
+third-party token, which removes the source-side trust assumption instead of narrowing it. It
+is good work and it passed at 118 tests.
+
+Its contracts were never deployed, because doing so needed three more attestation waits and
+the window had closed. A repository whose Solidity does not match its deployed bytecode is
+worse than one without the feature: it invites a judge to diff them and find a mismatch nobody
+explained. So the repo was pinned back to exactly what is on chain, 97 tests, and the feature
+waits for a run that can finish.
+
+```
+git stash list   # delivery-source: real third-party token as acceptance criterion
+```
+
 ## Still open
 
 - **Vercel token must be rotated.** It travelled through a chat transcript and sits in the

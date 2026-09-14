@@ -17,7 +17,7 @@ Creditcoin transaction. No oracle operator, no arbiter, no human pressing approv
 | Attestcoin integration | **verified live** against the real precompile on CC3 Testnet — see below |
 | Deployment + demo transactions | see the block below |
 
-**[Deck (PDF)](https://proveout.vercel.app/ProveOut-deck.pdf)** · **[Verify a proof, no wallet needed](https://proveout.vercel.app/verify)** · **[Submission text](docs/SUBMISSION.md)**
+**[Deck (PDF)](https://proveout.vercel.app/ProveOut-deck.pdf)** · **[Demo video](https://proveout.vercel.app/demo.webm)** · **[Verify a proof, no wallet needed](https://proveout.vercel.app/verify)** · **[Submission text](docs/SUBMISSION.md)**
 
 This table is the honest state of the repository. No contract address or transaction hash
 appears anywhere in this repo until it has actually been produced — nothing is placeheld

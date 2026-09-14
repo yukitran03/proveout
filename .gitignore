@@ -12,3 +12,5 @@ contracts/broadcast/
 !.env.example
 *.log
 *.tsbuildinfo
+deck/.rec
+deck/.check

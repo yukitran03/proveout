@@ -85,10 +85,19 @@ https://proveout.vercel.app/ProveOut-deck.pdf
 ## Demo / Video URL
 
 ```
+https://proveout.vercel.app/demo.webm
+```
+
+A 3 minute screen recording with on-screen captions, no audio: the thesis, the live console,
+all four transactions on their explorers, a real proof run on /verify, and the limitations.
+
+**Also worth pasting into the description, because it is stronger than a recording:**
+
+```
 https://proveout.vercel.app/verify
 ```
 
-> This is the live verifier: paste any Ethereum Sepolia transaction hash and it fetches a real
+> The live verifier: paste any Ethereum Sepolia transaction hash and it fetches a real
 > proof, calls the real precompile on Creditcoin, and shows the result including receipt status
 > and every recovered log. No wallet, nothing spent. If a recorded video is ready in time,
 > replace this with its URL and keep the verifier link in the description.
