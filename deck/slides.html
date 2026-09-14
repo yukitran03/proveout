@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>ProveOut</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Geist:wght@400;500;600&display=swap">
+<style>
+:root{
+  --bg:#ffffff; --fg:#252525; --muted:#8e8e8e; --line:#ebebeb; --sunk:#f7f7f7;
+  --proved:#138546; --refused:#d31130; --accent:#252525;
+  --sans:"Geist",ui-sans-serif,system-ui,sans-serif;
+  --mono:"Geist Mono",ui-monospace,Menlo,monospace;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#d7d9db;font-family:var(--sans);color:var(--fg);-webkit-font-smoothing:antialiased}
+section{
+  width:1280px;height:720px;background:var(--bg);position:relative;
+  padding:64px 76px;display:flex;flex-direction:column;gap:22px;
+  page-break-after:always;break-after:page;overflow:hidden;
+}
+section+section{margin-top:24px}
+.eyebrow{font-family:var(--mono);font-size:13px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+h1{font-size:62px;font-weight:600;letter-spacing:-.035em;line-height:1.02;max-width:20ch}
+h2{font-size:38px;font-weight:600;letter-spacing:-.025em;line-height:1.12;max-width:24ch}
+p{font-size:19px;line-height:1.55;color:#4a4a4a;max-width:74ch}
+p.lead{font-size:23px;color:var(--fg)}
+.num{position:absolute;right:40px;bottom:28px;font-family:var(--mono);font-size:12px;color:#c4c4c4}
+.foot{position:absolute;left:76px;bottom:28px;font-family:var(--mono);font-size:12px;color:var(--muted)}
+.mono{font-family:var(--mono)}
+.cols{display:grid;grid-template-columns:repeat(3,1fr);gap:30px;margin-top:6px}
+.col .k{font-family:var(--mono);font-size:12px;letter-spacing:.2em;color:var(--muted);display:block;margin-bottom:9px}
+.col h3{font-size:20px;font-weight:600;margin-bottom:7px}
+.col p{font-size:16px;line-height:1.5}
+table{width:100%;border-collapse:collapse;font-size:15px}
+th,td{text-align:left;padding:8px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:400}
+td.g{font-family:var(--mono);font-size:13px}
+tr:last-child td{border-bottom:0}
+pre{background:var(--sunk);border:1px solid var(--line);border-radius:12px;padding:20px 24px;
+  font-family:var(--mono);font-size:17px;line-height:1.6}
+.pull{font-size:46px;font-weight:600;letter-spacing:-.03em;line-height:1.15;max-width:22ch}
+.center{justify-content:center}
+ul{list-style:none;display:flex;flex-direction:column;gap:11px;max-width:80ch}
+li{font-size:17px;line-height:1.5;color:#4a4a4a;padding-left:18px;border-left:2px solid var(--line)}
+li b{color:var(--fg);font-weight:600}
+.ev{border:1px solid var(--line);border-radius:14px;padding:14px 18px;display:flex;flex-direction:column;gap:5px}
+.ev.ok{border-color:rgba(19,133,70,.35);background:rgba(19,133,70,.045)}
+.ev.no{border-color:rgba(211,17,48,.35);background:rgba(211,17,48,.045)}
+.ev .t{font-size:15px;color:#4a4a4a}
+.ev .t b{color:var(--fg);font-weight:600}
+.ev .h{font-family:var(--mono);font-size:11.5px;color:#6a6a6a;word-break:break-all;letter-spacing:-.01em}
+.tag{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;
+  padding:2px 7px;border-radius:5px;border:1px solid;display:inline-block}
+.tag.ok{color:var(--proved);border-color:rgba(19,133,70,.4)}
+.tag.no{color:var(--refused);border-color:rgba(211,17,48,.4)}
+.row{display:flex;align-items:center;gap:9px}
+.arch{display:grid;grid-template-columns:1fr 54px 1fr;gap:16px;align-items:start;margin-top:4px}
+.box{border:1px solid var(--line);border-radius:14px;padding:18px 20px}
+.box .hd{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);margin-bottom:11px}
+.box code{font-family:var(--mono);font-size:14px;display:block;line-height:1.75;color:#3a3a3a}
+.arrow{display:flex;align-items:center;justify-content:center;height:100%;font-size:26px;color:var(--muted)}
+.kv{display:grid;grid-template-columns:auto 1fr;gap:6px 20px;font-family:var(--mono);font-size:15px;margin-top:4px}
+.kv .a{color:var(--muted)}
+@media print{body{background:#fff}section{margin:0!important}}
+</style>
+</head>
+<body>
+
+<!-- 1 -->
+<section class="center">
+  <div class="eyebrow">BUIDL CTC 2026 Fall · Track AI</div>
+  <h1>ProveOut</h1>
+  <p class="lead" style="max-width:56ch">Money moves when the work is proved, and anyone can prove it failed.</p>
+  <p class="mono" style="font-size:15px;color:#8e8e8e;margin-top:10px">
+    Job escrow on Creditcoin CC3 · settled by Attestcoin readability · no oracle operator, no arbiter
+  </p>
+  <div class="num">01</div>
+</section>
+
+<!-- 2 -->
+<section>
+  <div class="eyebrow">The problem</div>
+  <h2>An AI agent working across chains cannot be paid safely.</h2>
+  <p>Pay first and the buyer loses the money if the work never happens. Pay after and the agent has
+  no guarantee it will ever be paid.</p>
+  <p>Every existing answer inserts a third party to decide whether the work was done: an oracle
+  operator, an arbiter, or the platform itself. Someone, somewhere, presses a button.</p>
+  <div class="num">02</div>
+</section>
+
+<!-- 3 -->
+<section>
+  <div class="eyebrow">The hole nobody names</div>
+  <p class="pull">Evidence that only the winner submits is not evidence.</p>
+  <p>The standard shape of a cross-chain settlement system is that the party who benefits watches
+  for their own good news and submits it. A worker sees the repayment and posts it. A builder
+  finishes the job and posts the receipt.</p>
+  <p class="lead"><b>Nobody posts their own failure.</b></p>
+  <p>Such a system does not need to censor bad news. Bad news simply never arrives, because the only
+  party watching has no reason to send it, and the escrow quietly waits out its timeout.</p>
+  <p class="lead" style="margin-top:4px">ProveOut pays strangers to submit it.</p>
+  <div class="num">03</div>
+</section>
+
+<!-- 4 -->
+<section>
+  <div class="eyebrow">Architecture</div>
+  <h2>Verification and payout in one Creditcoin transaction.</h2>
+  <div class="arch">
+    <div class="box">
+      <div class="hd">Ethereum Sepolia · source</div>
+      <code>WorkOracle.sol &nbsp;<span style="color:#8e8e8e">reporter-gated</span></code>
+      <code>├ WorkCompleted(jobId, criteriaHash,</code>
+      <code>│&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; builder, outputHash)</code>
+      <code>└ WorkFailed(jobId, reason)</code>
+    </div>
+    <div class="arrow">→</div>
+    <div class="box">
+      <div class="hd">Creditcoin CC3 · settlement</div>
+      <code>SourceRegistry.sol</code>
+      <code>└ emitter → chainKey, evmChainId,</code>
+      <code>&nbsp;&nbsp;&nbsp;topic0s, field positions</code>
+      <code style="margin-top:8px">JobEscrow.sol <span style="color:#8e8e8e">is ASCBase</span></code>
+      <code>├ execute(0) → release</code>
+      <code>├ execute(1) → challenge, <b>any caller</b></code>
+      <code>└ refund() after the deadline</code>
+    </div>
+  </div>
+  <p style="font-size:16px">A relayer waits for attestation, fetches the proof, and submits it. It is
+  untrusted and anyone can be it: if it lies the contract rejects it, if it disappears anyone else
+  can submit the same proof.</p>
+  <div class="num">04</div>
+</section>
+
+<!-- 5 -->
+<section>
+  <div class="eyebrow">Attestcoin integration</div>
+  <h2>The protocol's own entry point, not a wrapper around it.</h2>
+  <ul>
+    <li><b>JobEscrow inherits ASCBase</b> and settles through the protocol's <span class="mono">execute()</span>.
+    Replay protection and the query id are Attestcoin's, derived by the precompile from the verified
+    Merkle path, not a caller-supplied transaction hash.</li>
+    <li><b>Block Prover precompile <span class="mono">0x0000000000000000000000000000000000000FD2</span></b>,
+    called with a continuity proof and a Merkle proof from the Proof Builder service. We build neither.</li>
+    <li><b><span class="mono">receiptStatus == 1</span> is mandatory.</b> The precompile proves inclusion,
+    not success.</li>
+    <li><b>EvmV1Decoder is imported from the published package</b>, never copied in. A copy keeps
+    compiling and starts decoding garbage the first time a field moves.</li>
+    <li><b>Two event kinds, configurable.</b> Adding a source chain or a new emitter is one
+    <span class="mono">registerSource</span> call, not a code change.</li>
+  </ul>
+  <div class="foot">docs/attestcoin-integration.md</div>
+  <div class="num">05</div>
+</section>
+
+<!-- 6 -->
+<section>
+  <div class="eyebrow">The gate that matters</div>
+  <h2>Inclusion is not success.</h2>
+  <pre>EvmV1Decoder.ReceiptFields memory receipt = ...;
+if (receipt.receiptStatus != 1)
+    revert ReceiptNotSuccessful(receipt.receiptStatus);</pre>
+  <p>The precompile proves a transaction was included in a block. <b>A reverted transaction is in the
+  block too.</b> Without this line a builder sends a completion call, lets it revert, proves that
+  inclusion completely honestly, and is paid for work that never happened. Every proof in that attack
+  is genuine.</p>
+  <p style="font-size:16px;color:#8e8e8e">This is the pattern Gluwa's own reference contract uses. We
+  did not invent it. We refused to skip it.</p>
+  <div class="num">06</div>
+</section>
+
+<!-- 7 -->
+<section>
+  <div class="eyebrow">Six gates on the settlement path</div>
+  <table>
+    <tr><th style="width:58px">Gate</th><th style="width:290px">Check</th><th>What it stops</th></tr>
+    <tr><td class="g">G1</td><td class="g">receiptStatus == 1</td><td>a reverted call being paid as a success</td></tr>
+    <tr><td class="g">G2</td><td class="g">emitter is registered</td><td>anyone deploying their own oracle and draining every escrow</td></tr>
+    <tr><td class="g">G2b</td><td class="g">proved chain id matches</td><td>the same bytecode redeployed on another attested chain</td></tr>
+    <tr><td class="g">G3</td><td class="g">exact topic0 and topic count</td><td>a different event settling a job</td></tr>
+    <tr><td class="g">G4</td><td class="g">fields read from stored positions</td><td>indexed parameters read out of <span class="mono">data</span> as plausible garbage</td></tr>
+    <tr><td class="g">G5</td><td class="g">query id unseen</td><td>the same proof settling twice</td></tr>
+    <tr><td class="g">G6</td><td class="g">within the deadline</td><td>release and refund racing on transaction ordering</td></tr>
+  </table>
+  <p style="font-size:16px">The challenge path reuses G1 to G5 and deliberately skips G6. A failure
+  stays provable forever, or hiding one until the clock ran out would be a winning strategy.</p>
+  <div class="num">07</div>
+</section>
+
+<!-- 8 -->
+<section style="gap:14px">
+  <div class="eyebrow">On chain, not on a slide</div>
+  <h2 style="font-size:33px">Four real transactions on CC3 Testnet.</h2>
+  <div class="ev ok">
+    <div class="row"><span class="tag ok">01 Released</span><span class="t">A proved <b>WorkCompleted</b> paid the builder <b>1,200 tUSDC</b></span></div>
+    <div class="h">0x507ab15719e304cd117580bfebccf705c3788a574743e2c889544e3fba72397e</div>
+  </div>
+  <div class="ev no">
+    <div class="row"><span class="tag no">02 Refunded by a stranger</span><span class="t">A proved <b>WorkFailed</b> carried by <b>0xA0356B8011B63990978f2a7CCc389c3769d092Ea</b>, neither buyer nor builder. Buyer refunded <b>1,100</b>, that wallet paid a <b>100 tUSDC</b> bounty</span></div>
+    <div class="h">0x8f9575743aef5fb49db6570e9f7b57dec4c361afd1d580f2c81e1778e8a915ac</div>
+  </div>
+  <div class="ev no">
+    <div class="row"><span class="tag no">03 Reverted, on purpose</span><span class="t">Proof 01 replayed. <b>Query already processed</b></span></div>
+    <div class="h">0x06dab25c8d722886a110aa2be80b401819826552a65625ad1a7c93f60ca9c360</div>
+  </div>
+  <div class="ev no">
+    <div class="row"><span class="tag no">04 Refused at the source</span><span class="t">The builder tried to certify their own job on Sepolia. <b>NotReporter</b>, before any proof could exist</span></div>
+    <div class="h">0xa1ac8a598953c14cd21bd3f2669eccc8ca7d632fe5a83d77c5629b0dec42c775</div>
+  </div>
+  <div class="num">08</div>
+</section>
+
+<!-- 9 -->
+<section>
+  <div class="eyebrow">Demo economics</div>
+  <h2>The cost of being caught falls on whoever failed.</h2>
+  <table style="max-width:820px">
+    <tr><th>Parameter</th><th>Value</th></tr>
+    <tr><td>Job payout</td><td class="g">1,000 tUSDC</td></tr>
+    <tr><td>Builder bond</td><td class="g">20% of the payout &nbsp;·&nbsp; 200 tUSDC</td></tr>
+    <tr><td>Challenger bounty</td><td class="g">50% of the bond &nbsp;·&nbsp; 100 tUSDC</td></tr>
+    <tr><td>On release, builder receives</td><td class="g">1,200 tUSDC &nbsp;<span style="color:#8e8e8e">payout + bond returned</span></td></tr>
+    <tr><td>On challenge, buyer receives</td><td class="g">1,100 tUSDC</td></tr>
+    <tr><td>On challenge, challenger receives</td><td class="g">100 tUSDC &nbsp;<span style="color:#8e8e8e">out of the builder's bond</span></td></tr>
+  </table>
+  <p style="font-size:16px">The vault rule is <span class="mono">balance + paidOut &gt;= takenIn</span>,
+  an inequality rather than an equality, so a stranger sending one micro-unit into the vault cannot
+  wedge every escrow in it.</p>
+  <div class="num">09</div>
+</section>
+
+<!-- 10 -->
+<section>
+  <div class="eyebrow">Check it without trusting us</div>
+  <h2>Anyone can verify a proof, with no wallet and nothing spent.</h2>
+  <p>The precompile's <span class="mono">verify</span> is a view function, so the real verification
+  path can be exercised against real attestation state for free.</p>
+  <div class="cols">
+    <div class="col">
+      <span class="k">IN THE BROWSER</span>
+      <h3>proveout.vercel.app/verify</h3>
+      <p>Paste any Sepolia transaction hash. It fetches a real Merkle and continuity proof, calls the
+      precompile on Creditcoin, and shows the result with every log recovered from the proved bytes.</p>
+    </div>
+    <div class="col">
+      <span class="k">IN THE REPO</span>
+      <h3>spikes/spike1_prove.ts</h3>
+      <p>The same call from a terminal, unfunded. It is how the project's first gate was cleared
+      before a line of contract code was written.</p>
+    </div>
+    <div class="col">
+      <span class="k">TESTS</span>
+      <h3>97 passing, 0 failing</h3>
+      <p>Including a 6,144-call invariant run on the vault balance rule, and a mocked precompile so
+      the suite runs offline.</p>
+    </div>
+  </div>
+  <p class="mono" style="font-size:14px;color:#8e8e8e">test_release_isRefused_whenReceiptStatusIsZero
+  · test_anyone_canForceRefund_withFailureProof · test_builder_cannotCertifyTheirOwnWork ·
+  test_releaseAndRefundWindows_neverOverlap</p>
+  <div class="num">10</div>
+</section>
+
+<!-- 11 -->
+<section>
+  <div class="eyebrow">Boundaries</div>
+  <h2>What this does NOT do.</h2>
+  <ul>
+    <li><b>Attestcoin proves inclusion, not exclusion.</b> It can prove a transaction happened. It
+    cannot prove none happened. ProveOut does not make hiding a failure impossible; it makes it
+    detectable and expensive. That is the whole promise of the challenge mechanism, and not a word more.</li>
+    <li><b>The source oracle is trusted within its own scope.</b> Whoever holds a reporter role decides
+    what is provable. We narrow trust to one named contract with a named reporter set. We do not
+    eliminate it, and no proof system can.</li>
+    <li><b>TestUSDC is not USDC.</b> A six decimal demo token with an open mint and no value.</li>
+    <li><b>Testnet only, and unaudited.</b> Nothing here has had a security review.</li>
+    <li><b>The bond ratio is a demo parameter</b>, not a modelled economic result.</li>
+    <li><b>Only transaction types 0 and 2 are accepted.</b> Those are the two the shipped decoder fully
+    decodes; anything else is rejected loudly rather than decoded on a guess.</li>
+    <li><b>The relayer is not trusted, but it is not yet redundant.</b> Anyone can submit proofs; today
+    only our worker does it automatically.</li>
+  </ul>
+  <div class="num">11</div>
+</section>
+
+<!-- 12 -->
+<section class="center">
+  <div class="eyebrow">BUIDL CTC 2026 Fall · Track AI</div>
+  <h2 style="font-size:42px;max-width:28ch">Money moves when the work is proved, and anyone can prove
+  it failed.</h2>
+  <div class="kv">
+    <span class="a">Live</span><span>proveout.vercel.app</span>
+    <span class="a">Verify a proof</span><span>proveout.vercel.app/verify</span>
+    <span class="a">Repository</span><span>github.com/yukitran03/proveout</span>
+    <span class="a">JobEscrow</span><span>0x9940f7659490E3e3dA3294397951eE84C3B28db4</span>
+    <span class="a">WorkOracle</span><span>0x1e40b277AaB35D642c5F30A46276F46A6d3C11A9</span>
+    <span class="a">Chain</span><span>Creditcoin CC3 Testnet, id 102031 · source Sepolia, chain key 1</span>
+    <span class="a">Explorer</span><span>creditcoin-testnet.blockscout.com</span>
+  </div>
+  <div class="num">12</div>
+</section>
+
+</body>
+</html>

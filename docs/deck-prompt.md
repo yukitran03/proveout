@@ -1,5 +1,9 @@
 # Deck prompt — for Claude Design
 
+> **Already built.**  renders to  via
+> PDF written: C:Users	vkhdevproveoutwebpublicProveOut-deck.pdf (430 KB), and is live at https://proveout.vercel.app/ProveOut-deck.pdf.
+> This prompt remains the source for a redesign, and section 5 is still the pre-flight check.
+
 Paste **section 2** into Claude Design as-is. Section 1 is context for you, section 3 says
 where the numbers live, section 4 is the pre-flight check.
 
