@@ -5,12 +5,13 @@
     "sourceEvmChainId": 11155111
   },
   "deployer": "0x3Ef919342928307ABdCc9ec702f6f3c4f34f019c",
-  "workOracle": "0x1e40b277AaB35D642c5F30A46276F46A6d3C11A9",
-  "deployedAt": "2026-09-13T18:37:35.191Z",
-  "testUsdc": "0xb257A8aAE29BE4B7A80fbD192C089E233529Dd92",
-  "sourceRegistry": "0xb5f9F7728b24D8173B798b78df92c8Dab21909f3",
-  "jobEscrow": "0x9940f7659490E3e3dA3294397951eE84C3B28db4",
-  "deployBlock": 5482220,
+  "workOracle": "0xF38ac85b0cEC258dF08e8a45446f4f156EC591e9",
+  "deployedAt": "2026-09-14T02:27:31.145Z",
+  "sepoliaWeth": "0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14",
+  "testUsdc": "0x5Cf6AC5c66d9448B5aCf4A85D29836369299e793",
+  "sourceRegistry": "0x5f09023112d495b524486a5BcF0C8cD869acA657",
+  "jobEscrow": "0xC69D0f7a0f4A59db88b74ef64439B643b8c9B65b",
+  "deployBlock": 5484092,
   "webUrl": "https://proveout.vercel.app",
   "repoUrl": "https://github.com/yukitran03/proveout"
 }

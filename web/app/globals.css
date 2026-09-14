@@ -731,3 +731,28 @@ footer {
 dl.keyvals {
   margin: 0;
 }
+
+
+/* ------------------------------------------------------------------ mark */
+
+.topbar .brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+/* The mark is drawn in currentColor, so it takes the brand's colour and its hover with it. */
+.topbar .brand .mark {
+  display: block;
+  width: 22px;
+  height: 22px;
+  color: inherit;
+}
+
+.hero-mark {
+  width: 46px;
+  height: 46px;
+  color: var(--foreground);
+  display: block;
+  margin-bottom: 0.35rem;
+}

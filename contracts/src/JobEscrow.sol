@@ -15,27 +15,38 @@ import {SourceRegistry} from "./SourceRegistry.sol";
  *
  * @dev Two ways out of escrow, and the second is the point of the project:
  *
- *      release   - prove `WorkCompleted` on the source chain, builder is paid.
- *      challenge - prove `WorkFailed` on the source chain. ANY address may do this, is paid
- *                  a bounty out of the builder's bond, and the buyer is refunded. This is
- *                  what makes the evidence adversarial: in a design where only the party
- *                  who benefits submits proof, a failure is simply never submitted.
+ *      release   prove the acceptance criterion on the source chain, builder is paid.
+ *      challenge prove `WorkFailed` on the source chain. ANY address may do this, is paid a
+ *                bounty out of the builder's bond, and the buyer is refunded. This is what
+ *                makes the evidence adversarial: in a design where only the party who
+ *                benefits submits proof, a failure is simply never submitted.
  *
  *      Inherits {ASCBase} so the canonical Attestcoin entry point (`execute`) and its
  *      per-query replay guard are the ones the protocol ships, not ones we invented.
  *
- *      ON REPLAY PROTECTION - a deliberate, documented deviation. ProveOut's design note
- *      specified a nullifier of `keccak256(chainId, txHash, logIndex)`. The shipped
- *      {ASCBase} already dedupes on `keccak256(chainKey, blockHeight, txIndex)`, which is
- *      equivalent for uniqueness (a transaction index is unique within a block) and is
- *      derived by the protocol from the verified Merkle proof rather than from
- *      caller-supplied bytes. Adding a second, weaker nullifier beside it would be
- *      theatre. We use the protocol's.
+ *      TWO KINDS OF ACCEPTANCE CRITERION.
+ *
+ *      An **attested** job is settled by ProveOut's own `WorkOracle` naming the job. The
+ *      source-side trust is narrowed to one contract with a named reporter set, but it is
+ *      not removed: a reporter could state something untrue.
+ *
+ *      A **delivery** job has no such assumption. Its criterion is an on-chain fact produced
+ *      by an ordinary ERC-20 that has never heard of ProveOut: the builder moved at least N
+ *      tokens to the beneficiary. Nobody can emit that `Transfer` without actually moving the
+ *      tokens, so there is nothing left to trust on the source side at all. A `Transfer`
+ *      carries no job id, so the job is found by the triple the log does carry, token plus
+ *      sender plus recipient, reserved at creation so exactly one job can match.
+ *
+ *      ON REPLAY PROTECTION, a deliberate documented deviation. The design note specified a
+ *      nullifier of `keccak256(chainId, txHash, logIndex)`. {ASCBase} already dedupes on
+ *      `keccak256(chainKey, blockHeight, txIndex)`, equivalent for uniqueness and derived by
+ *      the protocol from the verified Merkle proof rather than from caller-supplied bytes.
+ *      A second, weaker nullifier beside it would be theatre. We use the protocol's.
  *
  *      Balance invariant is an INEQUALITY:
  *          token.balanceOf(this) + totalOut >= totalIn
- *      Anyone can push tokens into any address; if the contract demanded equality, a
- *      stranger sending one micro-unit would wedge every escrow in it forever.
+ *      Anyone can push tokens into any address; demanding equality would let a stranger
+ *      sending one micro-unit wedge every escrow in the contract forever.
  */
 contract JobEscrow is ASCBase, ReentrancyGuard {
     using SafeERC20 for IERC20;
@@ -61,11 +72,14 @@ contract JobEscrow is ASCBase, ReentrancyGuard {
         address buyer;
         address builder;
         address source; // expected source-chain emitter, frozen at creation
-        uint128 amount; // payout to the builder, in token micro-units
+        address beneficiary; // delivery jobs: who the tokens must reach
+        uint128 amount; // payout to the builder, in settlement-token micro-units
         uint128 bond; // builder's stake, funds the challenge bounty
+        uint256 minDelivery; // delivery jobs: least the Transfer must carry
         uint64 deadline;
         bytes32 criteriaHash; // frozen before any work happens
         bool bondPosted;
+        SourceRegistry.Kind kind;
         Status status;
     }
 
@@ -91,6 +105,9 @@ contract JobEscrow is ASCBase, ReentrancyGuard {
     error SourceMismatch(bytes32 jobId, address expected, address proved);
     error CriteriaMismatch(bytes32 jobId, bytes32 expected, bytes32 proved);
     error BuilderMismatch(bytes32 jobId, address expected, address proved);
+    error WrongSourceKind(SourceRegistry.Kind expected, SourceRegistry.Kind actual);
+    error DeliveryTooSmall(bytes32 jobId, uint256 required, uint256 delivered);
+    error DeliveryRouteTaken(bytes32 jobId);
 
     /// @notice Settlement asset held in escrow.
     IERC20 public immutable TOKEN;
@@ -108,6 +125,11 @@ contract JobEscrow is ASCBase, ReentrancyGuard {
 
     mapping(bytes32 => Job) private _jobs;
 
+    /// @notice keccak256(token, from, to) => the delivery job that route settles.
+    /// @dev Reserved at creation, so a proved Transfer can match at most one job and no
+    ///      search over jobs is ever needed inside a settlement.
+    mapping(bytes32 => bytes32) public deliveryRoute;
+
     event JobCreated(
         bytes32 indexed jobId,
         address indexed buyer,
@@ -118,6 +140,9 @@ contract JobEscrow is ASCBase, ReentrancyGuard {
         bytes32 criteriaHash,
         address source
     );
+    event DeliveryJobCreated(
+        bytes32 indexed jobId, address indexed token, address indexed beneficiary, uint256 minDelivery
+    );
     event BondPosted(bytes32 indexed jobId, address indexed builder, uint128 bond);
     event JobFunded(bytes32 indexed jobId, address indexed buyer, uint128 amount);
     event JobReleased(bytes32 indexed jobId, address indexed builder, uint128 amount, uint128 bond, bytes32 queryId);
@@ -126,10 +151,6 @@ contract JobEscrow is ASCBase, ReentrancyGuard {
     );
     event JobRefunded(bytes32 indexed jobId, address indexed buyer, uint128 amount, uint128 bond);
 
-    /// @param token Settlement asset.
-    /// @param registry Source-emitter registry.
-    /// @param bondBps Builder bond as bps of the job amount (e.g. 2000 = 20%).
-    /// @param bountyBps Challenger's share of the bond in bps (e.g. 5000 = 50%).
     constructor(IERC20 token, SourceRegistry registry, uint16 bondBps, uint16 bountyBps) {
         if (address(token) == address(0) || address(registry) == address(0)) revert ZeroAddress();
         if (bondBps == 0 || bondBps > 10_000 || bountyBps == 0 || bountyBps > 10_000) revert InvalidBps();
@@ -141,15 +162,7 @@ contract JobEscrow is ASCBase, ReentrancyGuard {
 
     // ---------------------------------------------------------------- setup
 
-    /// @notice Open a job with its acceptance criteria frozen before any work begins.
-    /// @dev The criteria hash is written once, here, and every later proof is measured
-    ///      against it. Nothing in this contract can change it afterwards.
-    /// @param jobId Caller-chosen identifier, also emitted by the source-chain oracle.
-    /// @param builder Address that will do the work and receive payment.
-    /// @param amount Payout held in escrow, in token micro-units.
-    /// @param deadline Unix time after which release is closed and refund opens.
-    /// @param criteriaHash Hash of the acceptance criteria.
-    /// @param source Source-chain emitter whose events settle this job.
+    /// @notice Open a job settled by a proved event from an attesting oracle.
     function createJob(
         bytes32 jobId,
         address builder,
@@ -158,14 +171,71 @@ contract JobEscrow is ASCBase, ReentrancyGuard {
         bytes32 criteriaHash,
         address source
     ) external {
+        SourceRegistry.Source memory src = REGISTRY.requireSource(source);
+        if (src.kind != SourceRegistry.Kind.Attested) {
+            revert WrongSourceKind(SourceRegistry.Kind.Attested, src.kind);
+        }
+        _open(jobId, builder, amount, deadline, criteriaHash, source, src.kind);
+    }
+
+    /**
+     * @notice Open a job whose acceptance criterion is an on-chain delivery.
+     * @dev Nothing here asks anyone whether the work was done. The job settles when the
+     *      token itself says the builder moved at least `minDelivery` to `beneficiary`.
+     * @param token Source-chain ERC-20 that must emit the Transfer.
+     * @param beneficiary Address the tokens must reach.
+     * @param minDelivery Least the Transfer must carry, in that token's own units.
+     */
+    function createDeliveryJob(
+        bytes32 jobId,
+        address builder,
+        uint128 amount,
+        uint64 deadline,
+        bytes32 criteriaHash,
+        address token,
+        address beneficiary,
+        uint256 minDelivery
+    ) external {
+        SourceRegistry.Source memory src = REGISTRY.requireSource(token);
+        if (src.kind != SourceRegistry.Kind.Delivery) {
+            revert WrongSourceKind(SourceRegistry.Kind.Delivery, src.kind);
+        }
+        if (beneficiary == address(0)) revert ZeroAddress();
+        if (minDelivery == 0) revert ZeroAmount();
+
+        bytes32 route = deliveryKey(token, builder, beneficiary);
+        if (deliveryRoute[route] != bytes32(0)) revert DeliveryRouteTaken(deliveryRoute[route]);
+
+        _open(jobId, builder, amount, deadline, criteriaHash, token, src.kind);
+
+        Job storage job = _jobs[jobId];
+        job.beneficiary = beneficiary;
+        job.minDelivery = minDelivery;
+        deliveryRoute[route] = jobId;
+
+        emit DeliveryJobCreated(jobId, token, beneficiary, minDelivery);
+    }
+
+    /// @notice The route a delivery job reserves: one token, one sender, one recipient.
+    function deliveryKey(address token, address from, address to) public pure returns (bytes32) {
+        return keccak256(abi.encodePacked(token, from, to));
+    }
+
+    function _open(
+        bytes32 jobId,
+        address builder,
+        uint128 amount,
+        uint64 deadline,
+        bytes32 criteriaHash,
+        address source,
+        SourceRegistry.Kind kind
+    ) private {
         if (jobId == bytes32(0)) revert InvalidJobId();
         if (builder == address(0)) revert ZeroAddress();
         if (amount == 0) revert ZeroAmount();
         if (criteriaHash == bytes32(0)) revert InvalidCriteria();
         if (deadline <= block.timestamp) revert InvalidDeadline();
         if (_jobs[jobId].status != Status.None) revert JobAlreadyExists(jobId);
-        // Fail now rather than at settlement time, when the money is already locked.
-        REGISTRY.requireSource(source);
 
         uint128 bond = uint128((uint256(amount) * BOND_BPS) / 10_000);
 
@@ -173,11 +243,14 @@ contract JobEscrow is ASCBase, ReentrancyGuard {
             buyer: msg.sender,
             builder: builder,
             source: source,
+            beneficiary: address(0),
             amount: amount,
             bond: bond,
+            minDelivery: 0,
             deadline: deadline,
             criteriaHash: criteriaHash,
             bondPosted: false,
+            kind: kind,
             status: Status.Created
         });
 
@@ -199,8 +272,8 @@ contract JobEscrow is ASCBase, ReentrancyGuard {
         emit BondPosted(jobId, msg.sender, bond);
     }
 
-    /// @notice Buyer locks the payout. Requires the bond to be up first, so the challenge
-    ///         path is funded from the moment the money is at risk.
+    /// @notice Buyer locks the payout. Requires the bond first, so the challenge path is
+    ///         funded from the moment the money is at risk.
     function fundJob(bytes32 jobId) external nonReentrant {
         Job storage job = _jobs[jobId];
         if (job.status != Status.Created) revert WrongStatus(jobId, job.status, Status.Created);
@@ -219,14 +292,10 @@ contract JobEscrow is ASCBase, ReentrancyGuard {
 
     /**
      * @notice Settle jobs from a proved source-chain transaction.
-     * @dev Reached only through {ASCBase-execute}, which has already
-     *      called the Block Prover precompile and required it to return true, and
-     *      required this query id to be unseen, then marked it seen.
-     *      Everything below is the part the protocol cannot do for us: deciding whether
-     *      this particular proved transaction says what this particular escrow needs.
-     * @param action 0 = release, 1 = challenge failure.
-     * @param queryId Protocol-derived id of the proved transaction.
-     * @param encodedTransaction Proved transaction + receipt bytes.
+     * @dev Reached only through {ASCBase-execute}, which has already called the Block Prover
+     *      precompile and required it to return true, and required this query id to be
+     *      unseen, then marked it seen. Everything below is the part the protocol cannot do
+     *      for us: deciding whether this proved transaction says what this escrow needs.
      */
     function _processAndEmitEvent(uint8 action, bytes32 queryId, bytes memory encodedTransaction)
         internal
@@ -239,7 +308,7 @@ contract JobEscrow is ASCBase, ReentrancyGuard {
 
         // GATE 1. Inclusion is not success. The precompile proves the transaction was in a
         // block; a reverted transaction is in the block too. Without this check a builder
-        // could send a WorkCompleted call that reverts and still be paid.
+        // could send a call that reverts and still be paid.
         if (receipt.receiptStatus != 1) revert ReceiptNotSuccessful(receipt.receiptStatus);
 
         uint256 settled;
@@ -254,15 +323,20 @@ contract JobEscrow is ASCBase, ReentrancyGuard {
 
             // GATE 2b. The proved transaction's own chain id must match the chain we
             // registered that emitter on. Identical bytecode from an identical nonce lands
-            // on an identical address on every EVM chain; without this, an attacker
-            // redeploys the oracle on another supported chain and emits whatever they like.
+            // on an identical address on every EVM chain.
             if (src.evmChainId != provedChainId) revert SourceChainMismatch(src.evmChainId, provedChainId);
 
-            if (action == uint8(Action.Release)) {
-                // GATE 3. Exact event signature and exact topic count.
+            // GATE 3. Exact event signature and exact topic count.
+            if (src.kind == SourceRegistry.Kind.Delivery) {
+                // A delivery source has no failure event; a challenge cannot come from one.
+                if (action != uint8(Action.Release)) continue;
                 if (logEntry.topics.length != src.completedTopicCount) continue;
                 if (logEntry.topics[0] != src.topic0Completed) continue;
-                _settleRelease(queryId, logEntry, src);
+                if (!_settleDelivery(queryId, logEntry, src)) continue;
+            } else if (action == uint8(Action.Release)) {
+                if (logEntry.topics.length != src.completedTopicCount) continue;
+                if (logEntry.topics[0] != src.topic0Completed) continue;
+                _settleAttestedRelease(queryId, logEntry, src);
             } else {
                 if (logEntry.topics.length != src.failedTopicCount) continue;
                 if (logEntry.topics[0] != src.topic0Failed) continue;
@@ -276,10 +350,12 @@ contract JobEscrow is ASCBase, ReentrancyGuard {
         if (settled == 0) revert NoMatchingLogs();
     }
 
-    /// @dev Release path. Applies gates 4 and 6.
-    function _settleRelease(bytes32 queryId, EvmV1Decoder.LogEntry memory logEntry, SourceRegistry.Source memory src)
-        private
-    {
+    /// @dev Attested release. Applies gates 4 and 6.
+    function _settleAttestedRelease(
+        bytes32 queryId,
+        EvmV1Decoder.LogEntry memory logEntry,
+        SourceRegistry.Source memory src
+    ) private {
         // GATE 4. Read each field from the position the registry recorded. Indexed
         // parameters live in topics[]; reading them out of `data` yields plausible garbage
         // rather than an error, which is why the layout is stored and not assumed.
@@ -293,8 +369,44 @@ contract JobEscrow is ASCBase, ReentrancyGuard {
         if (job.criteriaHash != provedCriteria) revert CriteriaMismatch(jobId, job.criteriaHash, provedCriteria);
         if (job.builder != provedBuilder) revert BuilderMismatch(jobId, job.builder, provedBuilder);
 
-        // GATE 6. Release and refund windows are disjoint: at any instant exactly one of
-        // them is open, so there is no ordering race between a builder and a buyer.
+        _payBuilder(jobId, job, queryId);
+    }
+
+    /**
+     * @dev Delivery release. Nothing here trusts a reporter: the token said the transfer
+     *      happened, and the token has no idea this escrow exists.
+     * @return matched False when the Transfer belongs to no job, which is the common case
+     *         for an ordinary token and must not revert the whole submission.
+     */
+    function _settleDelivery(
+        bytes32 queryId,
+        EvmV1Decoder.LogEntry memory logEntry,
+        SourceRegistry.Source memory src
+    ) private returns (bool matched) {
+        address from = address(uint160(uint256(logEntry.topics[src.deliveryFromTopic])));
+        address to = address(uint160(uint256(logEntry.topics[src.deliveryToTopic])));
+
+        bytes32 jobId = deliveryRoute[deliveryKey(logEntry.address_, from, to)];
+        if (jobId == bytes32(0)) return false; // somebody else's transfer
+
+        Job storage job = _jobs[jobId];
+        if (job.status != Status.Funded) revert WrongStatus(jobId, job.status, Status.Funded);
+        if (job.source != logEntry.address_) revert SourceMismatch(jobId, job.source, logEntry.address_);
+        if (job.builder != from) revert BuilderMismatch(jobId, job.builder, from);
+
+        // The amount is the one non-indexed field, so it is in `data`, not in a topic.
+        if (logEntry.data.length != 32) return false;
+        uint256 delivered = abi.decode(logEntry.data, (uint256));
+        if (delivered < job.minDelivery) revert DeliveryTooSmall(jobId, job.minDelivery, delivered);
+
+        _payBuilder(jobId, job, queryId);
+        return true;
+    }
+
+    /// @dev Shared tail of both release paths. GATE 6 lives here.
+    function _payBuilder(bytes32 jobId, Job storage job, bytes32 queryId) private {
+        // Release and refund windows are disjoint: at any instant exactly one of them is
+        // open, so there is no ordering race between a builder and a buyer.
         if (block.timestamp > job.deadline) revert DeadlinePassed(jobId, job.deadline);
 
         uint128 amount = job.amount;
@@ -365,8 +477,6 @@ contract JobEscrow is ASCBase, ReentrancyGuard {
     // ------------------------------------------------------------- internal
 
     /// @dev Pull the chain id and receipt out of a proved transaction in one decode pass.
-    ///      Only the transaction types {EvmV1Decoder} fully supports are accepted; an
-    ///      unsupported type is rejected loudly rather than decoded on a guess.
     function _decodeProved(bytes memory encodedTransaction)
         private
         pure
@@ -379,8 +489,8 @@ contract JobEscrow is ASCBase, ReentrancyGuard {
         }
         if (txType == 0) {
             EvmV1Decoder.DecodedTransactionType0 memory d = EvmV1Decoder.decodeTransactionType0(encodedTransaction);
-            // EIP-155: v = chainId * 2 + 35 or + 36. A pre-EIP-155 signature (v of 27/28)
-            // carries no chain id at all and is therefore unusable here.
+            // EIP-155: v = chainId * 2 + 35 or + 36. A pre-EIP-155 signature carries no
+            // chain id at all and is therefore unusable here.
             if (d.type0.v < 35) revert UnsupportedTxType(txType);
             return (uint64((d.type0.v - 35) / 2), d.receipt);
         }

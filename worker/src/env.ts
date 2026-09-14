@@ -50,6 +50,7 @@ export type Deployment = {
   sourceRegistry: string;
   jobEscrow: string;
   deployBlock?: number;
+  sepoliaWeth?: string;
   webUrl?: string;
   repoUrl?: string;
   deployedAt: string;

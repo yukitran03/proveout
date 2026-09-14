@@ -65,7 +65,8 @@ abstract contract Base is Test {
 
     function _sepoliaSource() internal pure returns (SourceRegistry.Source memory) {
         return SourceRegistry.Source({
-            registered: false, // set by the registry itself
+            registered: false,
+            kind: SourceRegistry.Kind.Attested, // set by the registry itself
             chainKey: SEPOLIA_CHAIN_KEY,
             evmChainId: SEPOLIA_CHAIN_ID,
             topic0Completed: TOPIC_COMPLETED,
@@ -75,7 +76,9 @@ abstract contract Base is Test {
             completedBuilderTopic: 3,
             failedJobIdTopic: 1,
             completedTopicCount: 4,
-            failedTopicCount: 3
+            failedTopicCount: 3,
+            deliveryFromTopic: 0,
+            deliveryToTopic: 0
         });
     }
 

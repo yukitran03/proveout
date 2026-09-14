@@ -30,6 +30,8 @@ export default function Home() {
   return (
     <>
       <section>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/mark.svg" alt="" width={46} height={46} className="hero-mark" />
         <p className="eyebrow">Creditcoin CC3 Testnet · Attestcoin readability</p>
         <h1>Money moves when the work is proved.</h1>
         <p>
@@ -55,7 +57,7 @@ export default function Home() {
       {hasRun ? (
         <section>
           <p className="eyebrow">On chain, not on a slide</p>
-          <h2>Four transactions that settle the argument.</h2>
+          <h2>Five transactions that settle the argument.</h2>
           <p>
             Real transactions against the live Block Prover. Open any of them in the explorer, or
             run the same verification yourself on the <Link href="/verify">verify page</Link>.
@@ -117,9 +119,45 @@ export default function Home() {
               </div>
             </article>
 
+            {TX?.delivery ? (
+              <article className="ev proved">
+                <div className="head">
+                  <span className="n">03</span>
+                  <span className="badge b-proved">No oracle at all</span>
+                </div>
+                <p className="claim">
+                  Settled by{' '}
+                  <a
+                    className="mono"
+                    href={`${SEPOLIA_EXPLORER}/address/${TX.delivery.token}`}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    canonical WETH on Sepolia
+                  </a>
+                  , a token with no stake in this job and no knowledge that this project exists.
+                  The acceptance criterion was an on-chain delivery: the builder had to move at
+                  least <b>0.001 WETH</b> to the buyer.{' '}
+                  <b>Nobody can emit that Transfer without actually moving the tokens</b>, so there
+                  is no reporter to trust here, and nothing to take on faith. Paid the builder{' '}
+                  <b>{usdc(TX.delivery.paidToBuilder)} tUSDC</b>.
+                </p>
+                <div className="stack-sm">
+                  <div className="hashline">
+                    <span className="k">Settlement</span>
+                    <Hash hash={TX.delivery.settlementTx} />
+                  </div>
+                  <div className="hashline">
+                    <span className="k">Source</span>
+                    <Hash hash={TX.delivery.sourceTx} sepolia />
+                  </div>
+                </div>
+              </article>
+            ) : null}
+
             <article className="ev refused">
               <div className="head">
-                <span className="n">03</span>
+                <span className="n">04</span>
                 <span className="badge b-refused">Reverted, on purpose</span>
               </div>
               <p className="claim">
@@ -136,7 +174,7 @@ export default function Home() {
             {TX?.selfCertify ? (
               <article className="ev refused">
                 <div className="head">
-                  <span className="n">04</span>
+                  <span className="n">05</span>
                   <span className="badge b-refused">Refused at the source</span>
                 </div>
                 <p className="claim">
@@ -217,12 +255,19 @@ export default function Home() {
 
       <section>
         <p className="eyebrow">What is actually trusted</p>
-        <h2>We do not claim to have removed the source of the fact.</h2>
+        <h2>Two kinds of criterion, and one of them trusts nobody.</h2>
         <p>
-          Attestcoin proves what the source chain said. Who is allowed to speak on the source chain
-          is an application decision, and pretending otherwise would be the kind of claim that falls
-          apart under one question. Here, <code>WorkOracle</code> has a named reporter set, and a
-          builder cannot certify their own work: transaction 04 above is that refusal, on chain.
+          Attestcoin proves what the source chain said. Who is allowed to speak on the source
+          chain is an application decision, and pretending otherwise would be the kind of claim that
+          falls apart under one question. An <b>attested</b> job is settled by our own{' '}
+          <code>WorkOracle</code>, which has a named reporter set: a builder cannot certify their own
+          work, and transaction 05 above is that refusal, on chain.
+        </p>
+        <p>
+          A <b>delivery</b> job does not have that assumption at all. Its criterion is an on-chain
+          fact produced by an ordinary token that has never heard of us, and no role, key or reporter
+          sits between the fact and the money. Transaction 03 is one of those. Which kind a job uses
+          is a product decision, not a limitation of the protocol.
         </p>
         <p>
           What ProveOut removes is everything between the fact and the money. No relayer you have to
@@ -321,9 +366,9 @@ if (receipt.receiptStatus != 1)
             the challenge mechanism, and not a word more.
           </li>
           <li>
-            <b>The source oracle is trusted within its own scope.</b> Whoever holds a reporter role
-            decides what is provable. ProveOut narrows trust to one named contract with a named
-            reporter set. It does not eliminate it, and no proof system can.
+            <b>An attested job trusts its oracle within its own scope.</b> Whoever holds a reporter
+            role decides what is provable there. A delivery job does not carry this assumption,
+            because the token is not ours and cannot be asked to lie.
           </li>
           <li>
             <b>TestUSDC is not USDC.</b> A six decimal demo token with an open mint and no value.

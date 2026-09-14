@@ -34,7 +34,7 @@ The difference is the challenge path. Where comparable designs let only the part
 benefits submit evidence, so a failure is never submitted at all, ProveOut lets any address
 on earth prove a failure and pays them a bounty out of the bond of whoever failed.
 
-4 real transactions on CC3 Testnet, verifiable without a wallet.
+5 real transactions on CC3 Testnet, verifiable without a wallet.
 ```
 
 ## Attestcoin Protocol Integration Summary
@@ -59,8 +59,11 @@ upstream field change is a compile error instead of silent garbage.
 reverted transaction is in the block too. Without this check a builder could prove a failed
 call honestly and be paid for work that never happened.
 
-4. Two event kinds, WorkCompleted and WorkFailed, read through a configurable
-SourceRegistry that stores the emitter, chain id, topic signatures and field positions.
+4. Two kinds of source, both read through a configurable SourceRegistry that stores the
+emitter, chain id, topic signatures and field positions. One is an attesting oracle whose
+event names the job. The other is any ordinary ERC-20, where the acceptance criterion is the
+Transfer itself: one of the five demo transactions settles against canonical Sepolia WETH,
+which has no stake in the job and cannot be asked to lie.
 
 5. Stated limit: inclusion is not exclusion. The challenge mechanism makes hiding a failure
 detectable and expensive, not impossible.
@@ -110,46 +113,57 @@ https://proveout.vercel.app
 
 ---
 
-## The four transactions
+## The five transactions
 
 Full hashes, for pasting into an explorer.
 
 **1. Release — a proved `WorkCompleted` paid the builder 1,200 tUSDC**
 
 ```
-Settlement (Creditcoin CC3): 0x507ab15719e304cd117580bfebccf705c3788a574743e2c889544e3fba72397e
-Source (Ethereum Sepolia):   0xa81e6a2ee9b23067781feed1c696f368e2f3fb520f428a5001edf3bb15bff218
+Settlement (Creditcoin CC3): 0x02c42a8e6f780daef8ca59f985e2c2d008be2625df61d0b775a2a51b307ca23a
+Source (Ethereum Sepolia):   0x6b331b41584e4a1c3acf222a34d36665595171269eddce481620c9e6a3b4e621
 ```
 
 **2. Challenge — a proved `WorkFailed`, submitted by a wallet that is neither the buyer nor
 the builder. Buyer refunded 1,100 tUSDC, submitter paid a 100 tUSDC bounty from the bond.**
 
 ```
-Settlement (Creditcoin CC3): 0x8f9575743aef5fb49db6570e9f7b57dec4c361afd1d580f2c81e1778e8a915ac
-Source (Ethereum Sepolia):   0xdec8b852679599b396cdd83f8ae4b45392284d4ea3d648d5953bc6a14e954b92
+Settlement (Creditcoin CC3): 0x90b4e9f403712c3d29c45d0315ef7ce1f4e0a47c8d2686dd9e38397aa4a471e8
+Source (Ethereum Sepolia):   0x54ffa5467a7a3f49470838f7409f399af244489a1c7d8c40726e8c68465a045b
 Submitted by:                0xA0356B8011B63990978f2a7CCc389c3769d092Ea
 ```
 
-**3. Replay refused — proof 1 resubmitted, reverted with `Query already processed`**
+**3. Settled with no oracle at all — the acceptance criterion was an on-chain delivery, and
+canonical WETH on Sepolia reported it. WETH has no stake in the job and cannot be asked to
+lie: nobody can emit that Transfer without actually moving the tokens.**
 
 ```
-Settlement (Creditcoin CC3): 0x06dab25c8d722886a110aa2be80b401819826552a65625ad1a7c93f60ca9c360
+Settlement (Creditcoin CC3): 0x21c775e8943d9691e5d50cc5b179e42fcdd6cf5218d5ffb3f8fcfb9026b522a4
+Source (Ethereum Sepolia):   0xd3d614577f9a0c1de462f2bb3469b6b17e22125ab47f936e48eaa348f40c2bf9
+Source token (WETH9):        0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14
 ```
 
-**4. Self-certification refused — the builder tried to declare their own job complete on the
+**4. Replay refused — proof 1 resubmitted, reverted with `Query already processed`**
+
+```
+Settlement (Creditcoin CC3): 0xf880148cf34fdc17fd3eb59ec7fbd26e09f066f89088367cdc4e43601908e96e
+```
+
+**5. Self-certification refused — the builder tried to declare their own job complete on the
 source chain and was refused with `NotReporter`, before any proof could exist**
 
 ```
-Source (Ethereum Sepolia):   0xa1ac8a598953c14cd21bd3f2669eccc8ca7d632fe5a83d77c5629b0dec42c775
+Source (Ethereum Sepolia):   0x57d5187175be6066ed63e0e3c6d3580cd6437c7ab623b257392e571ce332436f
 ```
 
 ## Contracts
 
 ```
-JobEscrow       Creditcoin CC3 Testnet   0x9940f7659490E3e3dA3294397951eE84C3B28db4
+JobEscrow       Creditcoin CC3 Testnet   0xC69D0f7a0f4A59db88b74ef64439B643b8c9B65b
 SourceRegistry  Creditcoin CC3 Testnet   0x5f09023112d495b524486a5BcF0C8cD869acA657
 TestUSDC        Creditcoin CC3 Testnet   0x5Cf6AC5c66d9448B5aCf4A85D29836369299e793
-WorkOracle      Ethereum Sepolia         0x1e40b277AaB35D642c5F30A46276F46A6d3C11A9
+WorkOracle      Ethereum Sepolia         0xF38ac85b0cEC258dF08e8a45446f4f156EC591e9
+WETH9 (source)  Ethereum Sepolia         0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14
 Block Prover    Creditcoin CC3 Testnet   0x0000000000000000000000000000000000000FD2
 ```
 
@@ -166,6 +180,6 @@ miss: full name, email, short bio, role, **country of residence**, **country of 
 - [ ] Repository switched to **public**
 - [ ] Deck URL returns 200
 - [ ] Video or demo URL returns 200
-- [ ] All four transaction hashes paste cleanly into an explorer
+- [ ] All five transaction hashes paste cleanly into an explorer
 - [ ] Submitted before 09:30 VN, leaving buffer ahead of the 10:59 deadline
 - [ ] Vercel token rotated after the sprint, it travelled through a chat transcript

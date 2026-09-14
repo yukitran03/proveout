@@ -146,6 +146,7 @@ contract InvariantTest is Test {
             sourceOracle,
             SourceRegistry.Source({
                 registered: false,
+                kind: SourceRegistry.Kind.Attested,
                 chainKey: 1,
                 evmChainId: 11_155_111,
                 topic0Completed: keccak256("WorkCompleted(bytes32,bytes32,address,bytes32)"),
@@ -155,7 +156,9 @@ contract InvariantTest is Test {
                 completedBuilderTopic: 3,
                 failedJobIdTopic: 1,
                 completedTopicCount: 4,
-                failedTopicCount: 3
+                failedTopicCount: 3,
+                deliveryFromTopic: 0,
+                deliveryToTopic: 0
             })
         );
 

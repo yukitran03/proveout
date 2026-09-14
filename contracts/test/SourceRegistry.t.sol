@@ -17,7 +17,7 @@ contract SourceRegistryTest is Test {
     bytes32 internal constant TOPIC_COMPLETED = keccak256("WorkCompleted(bytes32,bytes32,address,bytes32)");
     bytes32 internal constant TOPIC_FAILED = keccak256("WorkFailed(bytes32,bytes32)");
 
-    event SourceRegistered(address indexed emitter, uint64 indexed chainKey, uint64 evmChainId);
+    event SourceRegistered(address indexed emitter, uint64 indexed chainKey, uint64 evmChainId, SourceRegistry.Kind kind);
     event SourceRemoved(address indexed emitter);
 
     function setUp() public {
@@ -27,6 +27,7 @@ contract SourceRegistryTest is Test {
     function _valid() internal pure returns (SourceRegistry.Source memory) {
         return SourceRegistry.Source({
             registered: false,
+            kind: SourceRegistry.Kind.Attested,
             chainKey: 1,
             evmChainId: 11_155_111,
             topic0Completed: TOPIC_COMPLETED,
@@ -36,7 +37,9 @@ contract SourceRegistryTest is Test {
             completedBuilderTopic: 3,
             failedJobIdTopic: 1,
             completedTopicCount: 4,
-            failedTopicCount: 3
+            failedTopicCount: 3,
+            deliveryFromTopic: 0,
+            deliveryToTopic: 0
         });
     }
 
@@ -68,7 +71,7 @@ contract SourceRegistryTest is Test {
 
     function test_registerSource_emitsSourceRegistered() public {
         vm.expectEmit(true, true, false, true);
-        emit SourceRegistered(emitter, 1, 11_155_111);
+        emit SourceRegistered(emitter, 1, 11_155_111, SourceRegistry.Kind.Attested);
         registry.registerSource(emitter, _valid());
     }
 

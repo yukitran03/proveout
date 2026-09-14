@@ -38,6 +38,15 @@ export type Transactions = {
     bountyToChallenger: string;
   } | null;
   replay: { settlementTx: string; revertReason: string } | null;
+  delivery: {
+    token: string;
+    beneficiary: string;
+    minDelivery: string;
+    sourceTx: string;
+    settlementTx: string;
+    paidToBuilder: string;
+    submittedBy: string;
+  } | null;
   selfCertify: {
     sourceTx: string;
     attemptedBy: string;

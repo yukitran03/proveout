@@ -29,6 +29,8 @@ p.lead{font-size:23px;color:var(--fg)}
 .num{position:absolute;right:40px;bottom:28px;font-family:var(--mono);font-size:12px;color:#c4c4c4}
 .foot{position:absolute;left:76px;bottom:28px;font-family:var(--mono);font-size:12px;color:var(--muted)}
 .mono{font-family:var(--mono)}
+.mk{width:76px;height:76px;display:block;margin-bottom:10px}
+.mk-sm{width:30px;height:30px;position:absolute;left:76px;top:52px}
 .cols{display:grid;grid-template-columns:repeat(3,1fr);gap:30px;margin-top:6px}
 .col .k{font-family:var(--mono);font-size:12px;letter-spacing:.2em;color:var(--muted);display:block;margin-bottom:9px}
 .col h3{font-size:20px;font-weight:600;margin-bottom:7px}
@@ -70,6 +72,7 @@ li b{color:var(--fg);font-weight:600}
 
 <!-- 1 -->
 <section class="center">
+  <svg class="mk" viewBox="0 0 80 80" aria-hidden="true"><defs><clipPath id="dc"><circle cx="40" cy="40" r="25.5"/></clipPath><mask id="dm"><rect width="80" height="80" fill="#000"/><circle cx="40" cy="40" r="32" fill="#fff"/><g clip-path="url(#dc)" stroke="#000" stroke-width="6.5"><line x1="5" y1="5" x2="75" y2="75"/><line x1="5" y1="75" x2="75" y2="5"/><line x1="0" y1="18" x2="34" y2="52"/><line x1="15" y1="83" x2="52" y2="46"/></g></mask></defs><rect width="80" height="80" fill="#252525" mask="url(#dm)"/></svg>
   <div class="eyebrow">BUIDL CTC 2026 Fall · Track AI</div>
   <h1>ProveOut</h1>
   <p class="lead" style="max-width:56ch">Money moves when the work is proved, and anyone can prove it failed.</p>
@@ -148,7 +151,9 @@ li b{color:var(--fg);font-weight:600}
     not success.</li>
     <li><b>EvmV1Decoder is imported from the published package</b>, never copied in. A copy keeps
     compiling and starts decoding garbage the first time a field moves.</li>
-    <li><b>Two event kinds, configurable.</b> Adding a source chain or a new emitter is one
+    <li><b>Two kinds of source, configurable.</b> An attesting oracle whose event names the job, or
+    <b>any ordinary ERC-20</b>, where the acceptance criterion is the Transfer itself. The second kind
+    has no source-side trust assumption at all. Adding either is one
     <span class="mono">registerSource</span> call, not a code change.</li>
   </ul>
   <div class="foot">docs/attestcoin-integration.md</div>
@@ -190,24 +195,28 @@ if (receipt.receiptStatus != 1)
 </section>
 
 <!-- 8 -->
-<section style="gap:14px">
+<section style="gap:11px">
   <div class="eyebrow">On chain, not on a slide</div>
-  <h2 style="font-size:33px">Four real transactions on CC3 Testnet.</h2>
+  <h2 style="font-size:30px">Five real transactions on CC3 Testnet.</h2>
   <div class="ev ok">
     <div class="row"><span class="tag ok">01 Released</span><span class="t">A proved <b>WorkCompleted</b> paid the builder <b>1,200 tUSDC</b></span></div>
-    <div class="h">0x507ab15719e304cd117580bfebccf705c3788a574743e2c889544e3fba72397e</div>
+    <div class="h">0x02c42a8e6f780daef8ca59f985e2c2d008be2625df61d0b775a2a51b307ca23a</div>
   </div>
   <div class="ev no">
-    <div class="row"><span class="tag no">02 Refunded by a stranger</span><span class="t">A proved <b>WorkFailed</b> carried by <b>0xA0356B8011B63990978f2a7CCc389c3769d092Ea</b>, neither buyer nor builder. Buyer refunded <b>1,100</b>, that wallet paid a <b>100 tUSDC</b> bounty</span></div>
-    <div class="h">0x8f9575743aef5fb49db6570e9f7b57dec4c361afd1d580f2c81e1778e8a915ac</div>
+    <div class="row"><span class="tag no">02 Refunded by a stranger</span><span class="t">A proved <b>WorkFailed</b> carried by <b>0xA0356B8011B63990978f2a7CCc389c3769d092Ea</b>, neither buyer nor builder. Buyer refunded <b>1,100</b>, that wallet paid a <b>100 tUSDC</b> bounty from the bond</span></div>
+    <div class="h">0x90b4e9f403712c3d29c45d0315ef7ce1f4e0a47c8d2686dd9e38397aa4a471e8</div>
+  </div>
+  <div class="ev ok">
+    <div class="row"><span class="tag ok">03 No oracle at all</span><span class="t">Settled by <b>canonical WETH on Sepolia</b>, a token with no stake in the job. The criterion was an on-chain delivery of at least 0.001 WETH to the buyer. Nobody can emit that Transfer without moving the tokens</span></div>
+    <div class="h">0x21c775e8943d9691e5d50cc5b179e42fcdd6cf5218d5ffb3f8fcfb9026b522a4</div>
   </div>
   <div class="ev no">
-    <div class="row"><span class="tag no">03 Reverted, on purpose</span><span class="t">Proof 01 replayed. <b>Query already processed</b></span></div>
-    <div class="h">0x06dab25c8d722886a110aa2be80b401819826552a65625ad1a7c93f60ca9c360</div>
+    <div class="row"><span class="tag no">04 Reverted, on purpose</span><span class="t">Proof 01 replayed. <b>Query already processed</b></span></div>
+    <div class="h">0xf880148cf34fdc17fd3eb59ec7fbd26e09f066f89088367cdc4e43601908e96e</div>
   </div>
   <div class="ev no">
-    <div class="row"><span class="tag no">04 Refused at the source</span><span class="t">The builder tried to certify their own job on Sepolia. <b>NotReporter</b>, before any proof could exist</span></div>
-    <div class="h">0xa1ac8a598953c14cd21bd3f2669eccc8ca7d632fe5a83d77c5629b0dec42c775</div>
+    <div class="row"><span class="tag no">05 Refused at the source</span><span class="t">The builder tried to certify their own job on Sepolia. <b>NotReporter</b>, before any proof could exist</span></div>
+    <div class="h">0x57d5187175be6066ed63e0e3c6d3580cd6437c7ab623b257392e571ce332436f</div>
   </div>
   <div class="num">08</div>
 </section>
@@ -252,7 +261,7 @@ if (receipt.receiptStatus != 1)
     </div>
     <div class="col">
       <span class="k">TESTS</span>
-      <h3>97 passing, 0 failing</h3>
+      <h3>118 passing, 0 failing</h3>
       <p>Including a 6,144-call invariant run on the vault balance rule, and a mocked precompile so
       the suite runs offline.</p>
     </div>
@@ -271,9 +280,9 @@ if (receipt.receiptStatus != 1)
     <li><b>Attestcoin proves inclusion, not exclusion.</b> It can prove a transaction happened. It
     cannot prove none happened. ProveOut does not make hiding a failure impossible; it makes it
     detectable and expensive. That is the whole promise of the challenge mechanism, and not a word more.</li>
-    <li><b>The source oracle is trusted within its own scope.</b> Whoever holds a reporter role decides
-    what is provable. We narrow trust to one named contract with a named reporter set. We do not
-    eliminate it, and no proof system can.</li>
+    <li><b>An attested job trusts its oracle within its own scope.</b> Whoever holds a reporter role
+    decides what is provable there. A delivery job does not have this assumption, because the token
+    is not ours and cannot be asked to lie. Choosing between them is a product decision.</li>
     <li><b>TestUSDC is not USDC.</b> A six decimal demo token with an open mint and no value.</li>
     <li><b>Testnet only, and unaudited.</b> Nothing here has had a security review.</li>
     <li><b>The bond ratio is a demo parameter</b>, not a modelled economic result.</li>
@@ -287,6 +296,7 @@ if (receipt.receiptStatus != 1)
 
 <!-- 12 -->
 <section class="center">
+  <svg class="mk" style="width:54px;height:54px" viewBox="0 0 80 80" aria-hidden="true"><defs><clipPath id="dc"><circle cx="40" cy="40" r="25.5"/></clipPath><mask id="dm"><rect width="80" height="80" fill="#000"/><circle cx="40" cy="40" r="32" fill="#fff"/><g clip-path="url(#dc)" stroke="#000" stroke-width="6.5"><line x1="5" y1="5" x2="75" y2="75"/><line x1="5" y1="75" x2="75" y2="5"/><line x1="0" y1="18" x2="34" y2="52"/><line x1="15" y1="83" x2="52" y2="46"/></g></mask></defs><rect width="80" height="80" fill="#252525" mask="url(#dm)"/></svg>
   <div class="eyebrow">BUIDL CTC 2026 Fall · Track AI</div>
   <h2 style="font-size:42px;max-width:28ch">Money moves when the work is proved, and anyone can prove
   it failed.</h2>
@@ -294,8 +304,8 @@ if (receipt.receiptStatus != 1)
     <span class="a">Live</span><span>proveout.vercel.app</span>
     <span class="a">Verify a proof</span><span>proveout.vercel.app/verify</span>
     <span class="a">Repository</span><span>github.com/yukitran03/proveout</span>
-    <span class="a">JobEscrow</span><span>0x9940f7659490E3e3dA3294397951eE84C3B28db4</span>
-    <span class="a">WorkOracle</span><span>0x1e40b277AaB35D642c5F30A46276F46A6d3C11A9</span>
+    <span class="a">JobEscrow</span><span>0xC69D0f7a0f4A59db88b74ef64439B643b8c9B65b</span>
+    <span class="a">WorkOracle</span><span>0xF38ac85b0cEC258dF08e8a45446f4f156EC591e9</span>
     <span class="a">Chain</span><span>Creditcoin CC3 Testnet, id 102031 · source Sepolia, chain key 1</span>
     <span class="a">Explorer</span><span>creditcoin-testnet.blockscout.com</span>
   </div>

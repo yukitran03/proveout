@@ -1,5 +1,5 @@
 import { chromium } from 'playwright';
-import { existsSync, mkdirSync, readdirSync, renameSync, statSync, rmSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, readdirSync, renameSync, statSync, rmSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -22,12 +22,17 @@ const SITE = 'https://proveout.vercel.app';
 const CC3 = 'https://creditcoin-testnet.blockscout.com/tx';
 const SEP = 'https://sepolia.etherscan.io/tx';
 
+const RUN = JSON.parse(
+  readFileSync(join(ROOT, 'deployments', 'e2e-results.json'), 'utf8'),
+).scenarios;
 const TX = {
-  release: '0x507ab15719e304cd117580bfebccf705c3788a574743e2c889544e3fba72397e',
-  challenge: '0x8f9575743aef5fb49db6570e9f7b57dec4c361afd1d580f2c81e1778e8a915ac',
-  replay: '0x06dab25c8d722886a110aa2be80b401819826552a65625ad1a7c93f60ca9c360',
-  selfCertify: '0xa1ac8a598953c14cd21bd3f2669eccc8ca7d632fe5a83d77c5629b0dec42c775',
-  verifySource: '0xa81e6a2ee9b23067781feed1c696f368e2f3fb520f428a5001edf3bb15bff218',
+  release: RUN.release.settlementTx,
+  challenge: RUN.challenge.settlementTx,
+  replay: RUN.replay.settlementTx,
+  selfCertify: RUN.selfCertify.sourceTx,
+  delivery: RUN.delivery?.settlementTx,
+  deliverySource: RUN.delivery?.sourceTx,
+  verifySource: RUN.release.sourceTx,
 };
 
 if (existsSync(RAW)) rmSync(RAW, { recursive: true, force: true });
@@ -114,7 +119,7 @@ await scene(
 await scene(
   `${CC3}/${TX.release}`,
   18_000,
-  'Transaction 1 of 4 · released',
+  'Transaction 1 of 5 · released',
   'A proved WorkCompleted paid the builder 1,200 tUSDC.',
   'The escrow checked the emitting contract, its chain id, the frozen criteria hash and the receipt status before releasing anything.',
 );
@@ -122,7 +127,7 @@ await scene(
 await scene(
   `${CC3}/${TX.challenge}`,
   26_000,
-  'Transaction 2 of 4 · the one that matters',
+  'Transaction 2 of 5 · the one that matters',
   'A THIRD WALLET proved WorkFailed. Buyer refunded 1,100 tUSDC, that wallet paid a 100 tUSDC bounty.',
   'Sent from 0xA0356B80…92Ea, which is neither the buyer nor the builder. The bounty comes out of the bond of whoever failed, so the party who stands to lose cannot suppress the outcome.',
 );
@@ -130,15 +135,26 @@ await scene(
 await scene(
   `${CC3}/${TX.replay}`,
   16_000,
-  'Transaction 3 of 4 · replay refused',
+  'Transaction 3 of 5 · replay refused',
   'The same proof submitted twice. Reverted: Query already processed.',
   'The query id is derived by the precompile from the verified Merkle path, not from anything the caller hands in.',
 );
 
+
+if (TX.delivery) {
+  await scene(
+    `${CC3}/${TX.delivery}`,
+    26_000,
+    'Transaction 4 of 5 · no oracle at all',
+    'Settled by WETH. Not by us, not by a reporter, not by anyone with a stake in the job.',
+    'The acceptance criterion was an on-chain delivery: the builder had to move at least 0.001 WETH to the buyer on Sepolia. Canonical WETH9 said it happened, and WETH has never heard of this project. Nobody can emit that Transfer without actually moving the tokens.',
+  );
+}
+
 await scene(
   `${SEP}/${TX.selfCertify}`,
   18_000,
-  'Transaction 4 of 4 · refused at the source',
+  'Transaction 5 of 5 · refused at the source',
   'The builder tried to certify their own job. NotReporter, refused on Sepolia.',
   'An earlier version of our oracle had no access control, which made every gate downstream decorative. We would rather show you this than have you find it.',
 );

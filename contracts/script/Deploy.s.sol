@@ -46,6 +46,7 @@ contract DeployCreditcoin is Script {
             workOracle,
             SourceRegistry.Source({
                 registered: false, // the registry sets this
+                kind: SourceRegistry.Kind.Attested,
                 chainKey: sourceChainKey,
                 evmChainId: sourceEvmChainId,
                 topic0Completed: keccak256("WorkCompleted(bytes32,bytes32,address,bytes32)"),
@@ -55,7 +56,9 @@ contract DeployCreditcoin is Script {
                 completedBuilderTopic: 3,
                 failedJobIdTopic: 1,
                 completedTopicCount: 4,
-                failedTopicCount: 3
+                failedTopicCount: 3,
+                deliveryFromTopic: 0,
+                deliveryToTopic: 0
             })
         );
 

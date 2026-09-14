@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="80" height="80">
+  <!--
+    Favicon. A tab has no CSS context to inherit from, so the colour is stated here, with a
+    media query for the dark case. The cuts are the same ones as the full mark; at 16 pixels
+    what survives is the ring and the diagonal break, which is the point of the shape.
+  -->
+  <style>
+    .m { fill: #252525; }
+    @media (prefers-color-scheme: dark) { .m { fill: #fafafa; } }
+  </style>
+  <defs>
+    <clipPath id="c"><circle cx="40" cy="40" r="25.5"/></clipPath>
+    <mask id="m">
+      <rect width="80" height="80" fill="#000"/>
+      <circle cx="40" cy="40" r="32" fill="#fff"/>
+      <g clip-path="url(#c)" stroke="#000" stroke-width="6.5" stroke-linecap="butt">
+        <line x1="5" y1="5" x2="75" y2="75"/>
+        <line x1="5" y1="75" x2="75" y2="5"/>
+        <line x1="0" y1="18" x2="34" y2="52"/>
+        <line x1="15" y1="83" x2="52" y2="46"/>
+      </g>
+    </mask>
+  </defs>
+  <rect class="m" width="80" height="80" mask="url(#m)"/>
+</svg>

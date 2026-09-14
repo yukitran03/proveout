@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80" width="80" height="80" role="img" aria-label="ProveOut">
+  <!--
+    The stamp. One mechanism that reads as a confirmation or a refusal depending on which
+    arms you follow: the negative space carries a check and a strike out of the same cuts.
+
+    Drawn through a luminance mask and filled with `currentColor`, so the mark inherits the
+    surrounding text colour and works on either theme without a second file.
+  -->
+  <defs>
+    <clipPath id="po-cut">
+      <circle cx="40" cy="40" r="25.5"/>
+    </clipPath>
+    <mask id="po-mask">
+      <rect width="80" height="80" fill="#000"/>
+      <circle cx="40" cy="40" r="32" fill="#fff"/>
+      <g clip-path="url(#po-cut)" stroke="#000" stroke-width="6.5" stroke-linecap="butt">
+        <line x1="5" y1="5" x2="75" y2="75"/>
+        <line x1="5" y1="75" x2="75" y2="5"/>
+        <line x1="0" y1="18" x2="34" y2="52"/>
+        <line x1="15" y1="83" x2="52" y2="46"/>
+      </g>
+    </mask>
+  </defs>
+  <rect width="80" height="80" fill="currentColor" mask="url(#po-mask)"/>
+</svg>

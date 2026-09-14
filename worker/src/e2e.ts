@@ -65,7 +65,7 @@ async function main() {
   console.log('\npreparing actors');
   await fundGas(buyer, builder.address, ethers.parseEther('1'), 'builder (CTC)');
   await fundGas(buyer, challenger.address, ethers.parseEther('1'), 'challenger (CTC)');
-  await fundGas(buyerOnSepolia, builderOnSepolia.address, ethers.parseEther('0.004'), 'builder (Sepolia ETH)');
+  await fundGas(buyerOnSepolia, builderOnSepolia.address, ethers.parseEther('0.012'), 'builder (Sepolia ETH)');
   for (const who of [buyer.address, builder.address]) {
     await (await (usdc as any).mint(who, AMOUNT * 10n)).wait();
   }
@@ -185,15 +185,83 @@ async function main() {
     builderIsReporter: Boolean(isReporter),
   };
 
+
+  // ------------------------- 5. settled by a token that never heard of us
+  console.log('\n=== SCENARIO 5: settled by a real third-party token ===');
+  const WETH = d.sepoliaWeth;
+  if (!WETH) {
+    console.log('  skipped: no WETH source registered in this deployment');
+  } else {
+    const weth = new Contract(
+      WETH,
+      [
+        'function deposit() payable',
+        'function transfer(address,uint256) returns (bool)',
+        'function balanceOf(address) view returns (uint256)',
+        'function symbol() view returns (string)',
+      ],
+      builderOnSepolia,
+    );
+    console.log(`  source token: ${WETH} (${await (weth as any).symbol()}) on Sepolia`);
+
+    const MIN_DELIVERY = ethers.parseEther('0.001');
+    const jobId = ethers.id(`proveout-delivery-${Date.now()}`);
+    const criteria = ethers.id('criteria:delivery:send-at-least-0.001-WETH-to-the-buyer');
+    const deadline = Math.floor(Date.now() / 1000) + JOB_WINDOW;
+
+    await (
+      await (escrow as any).createDeliveryJob(
+        jobId, builder.address, AMOUNT, deadline, criteria, WETH, buyer.address, MIN_DELIVERY,
+      )
+    ).wait();
+    await (await (escrow.connect(builder) as any).postBond(jobId)).wait();
+    await (await (escrow as any).fundJob(jobId)).wait();
+    console.log(`  job delivery funded: ${jobId}`);
+
+    const held = await (weth as any).balanceOf(builderOnSepolia.address);
+    if (held < MIN_DELIVERY) {
+      const dep = await (weth as any).deposit({ value: MIN_DELIVERY * 2n });
+      await dep.wait();
+      console.log(`  builder wrapped ETH into WETH: ${dep.hash}`);
+    }
+
+    // The acceptance criterion, performed for real. Nobody reports this; the token does.
+    const delivery = await (weth as any).transfer(buyer.address, MIN_DELIVERY);
+    console.log(`  Sepolia WETH Transfer: ${delivery.hash}`);
+    const proof5 = await proveSourceTx(delivery.hash, cc3, sepolia);
+
+    const bBefore = await (usdc as any).balanceOf(builder.address);
+    const r5 = await submitProof(escrow.connect(challenger) as Contract, ACTION_RELEASE, proof5, challenger);
+    const bAfter = await (usdc as any).balanceOf(builder.address);
+    console.log(`  builder received ${ethers.formatUnits(bAfter - bBefore, 6)} tUSDC`);
+    console.log('  no oracle, no reporter, no privileged caller was involved');
+
+    scenarios.delivery = {
+      jobId,
+      token: WETH,
+      beneficiary: buyer.address,
+      minDelivery: MIN_DELIVERY.toString(),
+      sourceTx: delivery.hash,
+      sourceTxUrl: `${SEPOLIA_EXPLORER}/tx/${delivery.hash}`,
+      settlementTx: r5.hash,
+      settlementTxUrl: `${EXPLORER}/tx/${r5.hash}`,
+      paidToBuilder: (bAfter - bBefore).toString(),
+      submittedBy: challenger.address,
+      status: Number(r5.status),
+    };
+  }
+
   mkdirSync(join(ROOT, 'deployments'), { recursive: true });
   const out = join(ROOT, 'deployments', 'e2e-results.json');
   writeFileSync(out, JSON.stringify(results, null, 2) + '\n');
   console.log(`\nwrote ${out}`);
-  console.log('\nFour real transactions:');
+  const dl = scenarios.delivery as any;
+  console.log('\nReal transactions:');
   console.log(`  release      ${EXPLORER}/tx/${r1.hash}`);
   console.log(`  challenge    ${EXPLORER}/tx/${r2.hash}`);
   console.log(`  replay       ${EXPLORER}/tx/${replay.hash}  (reverted, on purpose)`);
   console.log(`  self-certify ${SEPOLIA_EXPLORER}/tx/${selfTx.hash}  (reverted on Sepolia, on purpose)`);
+  if (dl) console.log(`  delivery     ${EXPLORER}/tx/${dl.settlementTx}  (settled by real WETH, no oracle)`);
   void oracleAsBuilder;
 }
 

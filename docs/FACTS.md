@@ -18,24 +18,25 @@ it has not been produced by a real run, and it does not go on a slide.
 
 | Contract | Chain | Address |
 |---|---|---|
-| `JobEscrow` | Creditcoin CC3 Testnet | `0x9940f7659490E3e3dA3294397951eE84C3B28db4` |
-| `SourceRegistry` | Creditcoin CC3 Testnet | `0xb5f9F7728b24D8173B798b78df92c8Dab21909f3` |
-| `TestUSDC` | Creditcoin CC3 Testnet | `0xb257A8aAE29BE4B7A80fbD192C089E233529Dd92` |
-| `WorkOracle` | Ethereum Sepolia | `0x1e40b277AaB35D642c5F30A46276F46A6d3C11A9` |
+| `JobEscrow` | Creditcoin CC3 Testnet | `0xC69D0f7a0f4A59db88b74ef64439B643b8c9B65b` |
+| `SourceRegistry` | Creditcoin CC3 Testnet | `0x5f09023112d495b524486a5BcF0C8cD869acA657` |
+| `TestUSDC` | Creditcoin CC3 Testnet | `0x5Cf6AC5c66d9448B5aCf4A85D29836369299e793` |
+| `WorkOracle` | Ethereum Sepolia | `0xF38ac85b0cEC258dF08e8a45446f4f156EC591e9` |
 | Block Prover precompile | Creditcoin CC3 Testnet | `0x0000000000000000000000000000000000000FD2` |
 
 Creditcoin CC3 Testnet chain id **102031**. Source chain Ethereum Sepolia,
 Attestcoin chain key **1**, EVM chain id **11155111**.
-Escrow deployed at block **5482220** on 2026-09-13T18:37:35.191Z.
+Escrow deployed at block **5484092** on 2026-09-14T02:27:31.145Z.
 
 ## The demo run
 
 | # | What it proves | Source transaction (Sepolia) | Settlement (Creditcoin) |
 |---|---|---|---|
-| 1 | A proved `WorkCompleted` pays the builder 1,200 tUSDC | [`0xa81e6a2ee9b2...`](https://sepolia.etherscan.io/tx/0xa81e6a2ee9b23067781feed1c696f368e2f3fb520f428a5001edf3bb15bff218) | [`0x507ab15719e3...`](https://creditcoin-testnet.blockscout.com/tx/0x507ab15719e304cd117580bfebccf705c3788a574743e2c889544e3fba72397e) |
-| 2 | A proved `WorkFailed`, submitted by [`0xA0356B80...`](https://creditcoin-testnet.blockscout.com/address/0xA0356B8011B63990978f2a7CCc389c3769d092Ea), **neither the buyer nor the builder**, refunds 1,100 tUSDC and pays that wallet a 100 tUSDC bounty | [`0xdec8b8526795...`](https://sepolia.etherscan.io/tx/0xdec8b852679599b396cdd83f8ae4b45392284d4ea3d648d5953bc6a14e954b92) | [`0x8f9575743aef...`](https://creditcoin-testnet.blockscout.com/tx/0x8f9575743aef5fb49db6570e9f7b57dec4c361afd1d580f2c81e1778e8a915ac) |
-| 3 | Replaying proof #1 is refused on-chain (`execution reverted: "Query already processed"`) | | [`0x06dab25c8d72...`](https://creditcoin-testnet.blockscout.com/tx/0x06dab25c8d722886a110aa2be80b401819826552a65625ad1a7c93f60ca9c360) |
-| 4 | The builder calls `reportCompleted` for their own job on the source chain and is refused there, before any proof can exist. `isReporter(builder)` is `false` | [`0xa1ac8a598953...`](https://sepolia.etherscan.io/tx/0xa1ac8a598953c14cd21bd3f2669eccc8ca7d632fe5a83d77c5629b0dec42c775) reverted | |
+| 1 | A proved `WorkCompleted` pays the builder 1,200 tUSDC | [`0x6b331b41584e...`](https://sepolia.etherscan.io/tx/0x6b331b41584e4a1c3acf222a34d36665595171269eddce481620c9e6a3b4e621) | [`0x02c42a8e6f78...`](https://creditcoin-testnet.blockscout.com/tx/0x02c42a8e6f780daef8ca59f985e2c2d008be2625df61d0b775a2a51b307ca23a) |
+| 2 | A proved `WorkFailed`, submitted by [`0xA0356B80...`](https://creditcoin-testnet.blockscout.com/address/0xA0356B8011B63990978f2a7CCc389c3769d092Ea), **neither the buyer nor the builder**, refunds 1,100 tUSDC and pays that wallet a 100 tUSDC bounty | [`0x54ffa5467a7a...`](https://sepolia.etherscan.io/tx/0x54ffa5467a7a3f49470838f7409f399af244489a1c7d8c40726e8c68465a045b) | [`0x90b4e9f40371...`](https://creditcoin-testnet.blockscout.com/tx/0x90b4e9f403712c3d29c45d0315ef7ce1f4e0a47c8d2686dd9e38397aa4a471e8) |
+| 3 | Replaying proof #1 is refused on-chain (`execution reverted: "Query already processed"`) | | [`0xf880148cf34f...`](https://creditcoin-testnet.blockscout.com/tx/0xf880148cf34fdc17fd3eb59ec7fbd26e09f066f89088367cdc4e43601908e96e) |
+| 4 | Settled with **no oracle and no reporter at all**. The acceptance criterion was an on-chain delivery: the builder moved at least 0.001 WETH to the buyer, and [`0xfFf99767...`](https://sepolia.etherscan.io/address/0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14), a token that has never heard of this project, said so. Paid the builder 1,200 tUSDC | [`0xd3d614577f9a...`](https://sepolia.etherscan.io/tx/0xd3d614577f9a0c1de462f2bb3469b6b17e22125ab47f936e48eaa348f40c2bf9) | [`0x21c775e8943d...`](https://creditcoin-testnet.blockscout.com/tx/0x21c775e8943d9691e5d50cc5b179e42fcdd6cf5218d5ffb3f8fcfb9026b522a4) |
+| 5 | The builder calls `reportCompleted` for their own job on the source chain and is refused there, before any proof can exist. `isReporter(builder)` is `false` | [`0x57d5187175be...`](https://sepolia.etherscan.io/tx/0x57d5187175be6066ed63e0e3c6d3580cd6437c7ab623b257392e571ce332436f) reverted | |
 
 ## Job economics in the demo
 

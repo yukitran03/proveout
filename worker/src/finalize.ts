@@ -25,6 +25,15 @@ type E2e = {
       bountyToChallenger: string;
     };
     replay?: { settlementTx: string; revertReason: string };
+    delivery?: {
+      token: string;
+      beneficiary: string;
+      minDelivery: string;
+      sourceTx: string;
+      settlementTx: string;
+      paidToBuilder: string;
+      submittedBy: string;
+    };
     selfCertify?: {
       attemptedBy: string;
       sourceTx: string;
@@ -86,6 +95,17 @@ const webDeployment = {
     replay: s?.replay
       ? { settlementTx: s.replay.settlementTx, revertReason: s.replay.revertReason }
       : null,
+    delivery: s?.delivery
+      ? {
+          token: s.delivery.token,
+          beneficiary: s.delivery.beneficiary,
+          minDelivery: s.delivery.minDelivery,
+          sourceTx: s.delivery.sourceTx,
+          settlementTx: s.delivery.settlementTx,
+          paidToBuilder: s.delivery.paidToBuilder,
+          submittedBy: s.delivery.submittedBy,
+        }
+      : null,
     selfCertify: s?.selfCertify
       ? {
           sourceTx: s.selfCertify.sourceTx,
@@ -140,9 +160,16 @@ if (s?.replay) {
   );
 }
 
+if (s?.delivery) {
+  const eth = (v: string) => (Number(v) / 1e18).toString();
+  rows.push(
+    `| ${rows.length + 1} | Settled with **no oracle and no reporter at all**. The acceptance criterion was an on-chain delivery: the builder moved at least ${eth(s.delivery.minDelivery)} WETH to the buyer, and [\`${s.delivery.token.slice(0, 10)}...\`](${SEPOLIA_EXPLORER}/address/${s.delivery.token}), a token that has never heard of this project, said so. Paid the builder ${usdc(s.delivery.paidToBuilder)} tUSDC | [\`${cut(s.delivery.sourceTx)}\`](${SEPOLIA_EXPLORER}/tx/${s.delivery.sourceTx}) | [\`${cut(s.delivery.settlementTx)}\`](${EXPLORER}/tx/${s.delivery.settlementTx}) |`,
+  );
+}
+
 if (s?.selfCertify) {
   rows.push(
-    `| 4 | The builder calls \`reportCompleted\` for their own job on the source chain and is refused there, before any proof can exist. \`isReporter(builder)\` is \`${s.selfCertify.builderIsReporter}\` | [\`${cut(s.selfCertify.sourceTx)}\`](${SEPOLIA_EXPLORER}/tx/${s.selfCertify.sourceTx}) reverted | |`,
+    `| ${rows.length + 1} | The builder calls \`reportCompleted\` for their own job on the source chain and is refused there, before any proof can exist. \`isReporter(builder)\` is \`${s.selfCertify.builderIsReporter}\` | [\`${cut(s.selfCertify.sourceTx)}\`](${SEPOLIA_EXPLORER}/tx/${s.selfCertify.sourceTx}) reverted | |`,
   );
 }
 

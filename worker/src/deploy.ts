@@ -27,6 +27,18 @@ const BOUNTY_BPS = 5_000; // a successful challenger takes half of that bond
 
 export const TOPIC_COMPLETED = ethers.id('WorkCompleted(bytes32,bytes32,address,bytes32)');
 export const TOPIC_FAILED = ethers.id('WorkFailed(bytes32,bytes32)');
+export const TOPIC_TRANSFER = ethers.id('Transfer(address,address,uint256)');
+
+/**
+ * Canonical WETH9 on Ethereum Sepolia. Verified on chain before it was written here: it
+ * reports name "Wrapped Ether", symbol "WETH", and carries 3,124 bytes of code.
+ *
+ * This is the point of the Delivery source kind. It is an ordinary token deployed by people
+ * who have never heard of this project, it cannot be configured by anyone here, and it emits
+ * Transfer only when tokens actually move. A job settled against it asks nobody whether the
+ * work was done.
+ */
+export const SEPOLIA_WETH = '0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14';
 
 const PATH = join(ROOT, 'deployments', 'cc3-testnet.json');
 
@@ -34,6 +46,7 @@ type Partial_ = {
   network?: { creditcoinChainId: number; sourceChainKey: number; sourceEvmChainId: number };
   workOracle?: string;
   deployBlock?: number;
+  sepoliaWeth?: string;
   testUsdc?: string;
   sourceRegistry?: string;
   jobEscrow?: string;
@@ -117,6 +130,7 @@ async function main() {
     console.log('registering the Sepolia oracle as a trusted source...');
     const tx = await (registry.contract as any).registerSource(d.workOracle, {
       registered: false,
+      kind: 0, // Attested
       chainKey: SOURCE_CHAIN_KEY,
       evmChainId: SOURCE_EVM_CHAIN_ID,
       topic0Completed: TOPIC_COMPLETED,
@@ -127,9 +141,31 @@ async function main() {
       failedJobIdTopic: 1,
       completedTopicCount: 4,
       failedTopicCount: 3,
+      deliveryFromTopic: 0,
+      deliveryToTopic: 0,
     });
     await tx.wait();
-    console.log(`  registerSource ${tx.hash}`);
+    console.log(`  registerSource(oracle)  ${tx.hash}`);
+
+    const tx2 = await (registry.contract as any).registerSource(SEPOLIA_WETH, {
+      registered: false,
+      kind: 1, // Delivery
+      chainKey: SOURCE_CHAIN_KEY,
+      evmChainId: SOURCE_EVM_CHAIN_ID,
+      topic0Completed: TOPIC_TRANSFER,
+      topic0Failed: ethers.ZeroHash,
+      completedJobIdTopic: 0,
+      completedCriteriaTopic: 0,
+      completedBuilderTopic: 0,
+      failedJobIdTopic: 0,
+      completedTopicCount: 3,
+      failedTopicCount: 0,
+      deliveryFromTopic: 1,
+      deliveryToTopic: 2,
+    });
+    await tx2.wait();
+    console.log(`  registerSource(WETH)    ${tx2.hash}`);
+    d.sepoliaWeth = SEPOLIA_WETH;
 
     d.testUsdc = usdc.address;
     d.sourceRegistry = registry.address;
