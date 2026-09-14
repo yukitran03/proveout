@@ -69,6 +69,11 @@ which has no stake in the job and cannot be asked to lie.
 detectable and expensive, not impossible.
 ```
 
+## Project Detail / long description
+
+Paste the whole of [`docs/PROJECT-DETAIL.md`](PROJECT-DETAIL.md). It is markdown, and the form
+renders markdown. Every hash in it is a live link to an explorer.
+
 ## GitHub URL
 
 ```

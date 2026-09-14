@@ -237,6 +237,7 @@ being attested into permanence.
 - [`docs/technical-spec.md`](docs/technical-spec.md)
 - [`docs/threat-model.md`](docs/threat-model.md) — what each gate stops
 - [`docs/deck-prompt.md`](docs/deck-prompt.md) — the full prompt for building the pitch deck, with every figure it is allowed to use
+- [`docs/PROJECT-DETAIL.md`](docs/PROJECT-DETAIL.md) — the long description, ready to paste
 - [`docs/SUBMISSION.md`](docs/SUBMISSION.md) — the form text, ready to paste
 - [`docs/FACTS.md`](docs/FACTS.md) — generated sheet of every current figure
 - [`docs/logo-prompt.md`](docs/logo-prompt.md)
