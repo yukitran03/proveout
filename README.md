@@ -17,7 +17,7 @@ Creditcoin transaction. No oracle operator, no arbiter, no human pressing approv
 | Attestcoin integration | **verified live** against the real precompile on CC3 Testnet — see below |
 | Deployment + demo transactions | see the block below |
 
-**[Deck (PDF)](https://proveout.vercel.app/ProveOut-deck.pdf)** · **[Demo video](https://proveout.vercel.app/demo.webm)** · **[Verify a proof, no wallet needed](https://proveout.vercel.app/verify)** · **[Submission text](docs/SUBMISSION.md)**
+**[Deck (PDF)](https://proveout.vercel.app/ProveOut-deck.pdf)** · **[Demo video](https://proveout.vercel.app/demo.webm)** · **[Verify a proof, no wallet needed](https://proveout.vercel.app/verify)**
 
 This table is the honest state of the repository. No contract address or transaction hash
 appears anywhere in this repo until it has actually been produced — nothing is placeheld
@@ -236,12 +236,7 @@ being attested into permanence.
 - [`docs/attestcoin-integration.md`](docs/attestcoin-integration.md) — exactly how the precompile is used
 - [`docs/technical-spec.md`](docs/technical-spec.md)
 - [`docs/threat-model.md`](docs/threat-model.md) — what each gate stops
-- [`docs/deck-prompt.md`](docs/deck-prompt.md) — the full prompt for building the pitch deck, with every figure it is allowed to use
 - [`docs/PROJECT-DETAIL.md`](docs/PROJECT-DETAIL.md) — the long description, ready to paste
-- [`docs/SUBMISSION.md`](docs/SUBMISSION.md) — the form text, ready to paste
-- [`docs/FACTS.md`](docs/FACTS.md) — generated sheet of every current figure
-- [`docs/logo-prompt.md`](docs/logo-prompt.md)
-- [`docs/demo-video.md`](docs/demo-video.md) — shot list and spoken script for the demo video
 - [`BUILD_LOG.md`](BUILD_LOG.md) — what was verified, what was assumed and turned out wrong
 
 ## License

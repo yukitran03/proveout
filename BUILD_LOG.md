@@ -257,8 +257,7 @@ leave a stale address behind in the docs — the failure the plan specifically w
 through Playwright and served from `web/public`. Live at
 **https://proveout.vercel.app/ProveOut-deck.pdf** (verified 200, `application/pdf`, 440 KB).
 
-Every figure on it comes from `docs/FACTS.md`, which is generated from the deployment record
-and the demo run. Nothing on a slide was typed from memory, which is the only way a deck
+Every figure on it is generated from the deployment record and the demo run. Nothing on a slide was typed from memory, which is the only way a deck
 survives a redeploy without quietly going stale.
 
 ### Video
@@ -272,12 +271,6 @@ Live at **https://proveout.vercel.app/demo.webm**.
 Eight scenes: the thesis, the live console, all four demo transactions on their explorers with
 the challenge held longest, a real proof run live on `/verify`, and the limitations card.
 
-### Submission text
-
-`docs/SUBMISSION.md` carries everything the form asks for, ready to paste: project name,
-sector, a 118-word description, a 196-word Attestcoin integration summary written in the order
-a judge scoring integration depth reads it, all four transaction hashes in full, every contract
-address, and the two country fields that are easy to miss.
 
 ### One deliberate subtraction
 
