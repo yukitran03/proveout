@@ -31,7 +31,7 @@ export default function Home() {
     <>
       <section>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/mark.svg" alt="" width={46} height={46} className="hero-mark" />
+        <img src="/icon.svg" alt="" width={46} height={46} className="hero-mark" />
         <p className="eyebrow">Creditcoin CC3 Testnet · Attestcoin readability</p>
         <h1>Money moves when the work is proved.</h1>
         <p>

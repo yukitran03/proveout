@@ -24,7 +24,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <div className="wrap">
           <header className="topbar">
             <Link className="brand" href="/" aria-label="ProveOut, home">
-              <img src="/mark.svg" alt="" width={22} height={22} className="mark" />
+              <img src="/icon.svg" alt="" width={22} height={22} className="mark" />
               <span>ProveOut</span>
             </Link>
             <nav>

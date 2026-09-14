@@ -323,12 +323,11 @@ step while the earlier run was the live one, which is recorded above rather than
 A stamp mark: one form whose negative space reads as a check or a strike depending on which arms
 you follow, which is the product in a single shape.
 
-Three variants rather than one file, because they have different jobs.
+Two files, because they have different jobs.
 
 | File | Job |
 |---|---|
-| `web/public/mark.svg` | drawn in `currentColor`, so it inherits the theme and needs no second copy |
-| `web/app/icon.svg` | states its colour with a `prefers-color-scheme` query, because a browser tab has no CSS to inherit from |
+| `web/app/icon.svg` | the browser tab icon and the site logo, one file; it states its colour with a `prefers-color-scheme` query, which works in a tab and inside an `<img>` alike |
 | `docs/logo-lockup.svg` | keeps its own dark ground, so it survives both GitHub themes in the README |
 
 

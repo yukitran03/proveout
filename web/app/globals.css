@@ -741,7 +741,7 @@ dl.keyvals {
   gap: 0.55rem;
 }
 
-/* The mark is drawn in currentColor, so it takes the brand's colour and its hover with it. */
+/* Same file as the browser tab icon; it picks its own colour for light and dark. */
 .topbar .brand .mark {
   display: block;
   width: 22px;
