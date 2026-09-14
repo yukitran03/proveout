@@ -146,9 +146,15 @@ export default function Home() {
                   <b>{String(TX.selfCertify.builderIsReporter)}</b>. An earlier version of this
                   oracle had no access control at all, which made every gate downstream decorative.
                 </p>
-                <div className="hashline">
-                  <span className="k">Source</span>
-                  <Hash hash={TX.selfCertify.sourceTx} sepolia />
+                <div className="stack-sm">
+                  <div className="hashline">
+                    <span className="k">Refused with</span>
+                    <span>{TX.selfCertify.revertReason}</span>
+                  </div>
+                  <div className="hashline">
+                    <span className="k">Source</span>
+                    <Hash hash={TX.selfCertify.sourceTx} sepolia />
+                  </div>
                 </div>
               </article>
             ) : null}

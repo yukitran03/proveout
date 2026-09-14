@@ -1,27 +1,34 @@
 {
-  "jobEscrow": "0x6Ecf0f01DDE2b1872E6EA131c41De85e6a285BB6",
-  "workOracle": "0xD40002aA8a8faDd14723b90690051a368232654e",
-  "testUsdc": "0xD40002aA8a8faDd14723b90690051a368232654e",
-  "sourceRegistry": "0x5995bdC12087884B5766433c59eb42b8EbB3C50D",
-  "deployBlock": 5480951,
+  "jobEscrow": "0x9940f7659490E3e3dA3294397951eE84C3B28db4",
+  "workOracle": "0x1e40b277AaB35D642c5F30A46276F46A6d3C11A9",
+  "testUsdc": "0xb257A8aAE29BE4B7A80fbD192C089E233529Dd92",
+  "sourceRegistry": "0xb5f9F7728b24D8173B798b78df92c8Dab21909f3",
+  "deployBlock": 5482220,
   "creditcoinChainId": 102031,
   "repoUrl": "https://github.com/yukitran03/proveout",
   "transactions": {
     "release": {
-      "settlementTx": "0x9a3c9b1d0a327cff81ba85f3456abfcf0ee810a1a8a69f8e2451665b9a2c1874",
-      "sourceTx": "0xa8b9f6fc06cc9a6513e1754b3c04295e224b04545d8c64616b794e14e1d7b578",
+      "settlementTx": "0x507ab15719e304cd117580bfebccf705c3788a574743e2c889544e3fba72397e",
+      "sourceTx": "0xa81e6a2ee9b23067781feed1c696f368e2f3fb520f428a5001edf3bb15bff218",
       "paidToBuilder": "1200000000"
     },
     "challenge": {
-      "settlementTx": "0x6713f5e66d54554df8bf2603221300a890ae32bad8aa60de33015c92712a8966",
-      "sourceTx": "0x31ba9002185e45d8ad0573a94fed4dca0e9a6d98317cee204e75f95b1137555a",
+      "settlementTx": "0x8f9575743aef5fb49db6570e9f7b57dec4c361afd1d580f2c81e1778e8a915ac",
+      "sourceTx": "0xdec8b852679599b396cdd83f8ae4b45392284d4ea3d648d5953bc6a14e954b92",
       "challenger": "0xA0356B8011B63990978f2a7CCc389c3769d092Ea",
       "refundedToBuyer": "1100000000",
       "bountyToChallenger": "100000000"
     },
     "replay": {
-      "settlementTx": "0xc4738c2976693c67365a8662923dd30e2c7dbc3d8048014ebd972bdd51a92836",
+      "settlementTx": "0x06dab25c8d722886a110aa2be80b401819826552a65625ad1a7c93f60ca9c360",
       "revertReason": "execution reverted: \"Query already processed\""
+    },
+    "selfCertify": {
+      "sourceTx": "0xa1ac8a598953c14cd21bd3f2669eccc8ca7d632fe5a83d77c5629b0dec42c775",
+      "attemptedBy": "0x6147116Dd482f7C0588EE580D2b00e254eA7ead4",
+      "status": 0,
+      "revertReason": "NotReporter(0x6147116Dd482f7C0588EE580D2b00e254eA7ead4)",
+      "builderIsReporter": false
     }
   }
 }

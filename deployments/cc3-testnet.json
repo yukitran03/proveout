@@ -10,5 +10,7 @@
   "testUsdc": "0xb257A8aAE29BE4B7A80fbD192C089E233529Dd92",
   "sourceRegistry": "0xb5f9F7728b24D8173B798b78df92c8Dab21909f3",
   "jobEscrow": "0x9940f7659490E3e3dA3294397951eE84C3B28db4",
-  "deployBlock": 5482220
+  "deployBlock": 5482220,
+  "webUrl": "https://proveout.vercel.app",
+  "repoUrl": "https://github.com/yukitran03/proveout"
 }

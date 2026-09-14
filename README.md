@@ -29,20 +29,21 @@ with a number that was never run.
 
 | Contract | Chain | Address |
 |---|---|---|
-| `JobEscrow` | Creditcoin CC3 Testnet | [`0x6Ecf0f01DDE2b1872E6EA131c41De85e6a285BB6`](https://creditcoin-testnet.blockscout.com/address/0x6Ecf0f01DDE2b1872E6EA131c41De85e6a285BB6) |
-| `SourceRegistry` | Creditcoin CC3 Testnet | [`0x5995bdC12087884B5766433c59eb42b8EbB3C50D`](https://creditcoin-testnet.blockscout.com/address/0x5995bdC12087884B5766433c59eb42b8EbB3C50D) |
-| `TestUSDC` | Creditcoin CC3 Testnet | [`0xD40002aA8a8faDd14723b90690051a368232654e`](https://creditcoin-testnet.blockscout.com/address/0xD40002aA8a8faDd14723b90690051a368232654e) |
-| `WorkOracle` | Ethereum Sepolia | [`0xD40002aA8a8faDd14723b90690051a368232654e`](https://sepolia.etherscan.io/address/0xD40002aA8a8faDd14723b90690051a368232654e) |
+| `JobEscrow` | Creditcoin CC3 Testnet | [`0x9940f7659490E3e3dA3294397951eE84C3B28db4`](https://creditcoin-testnet.blockscout.com/address/0x9940f7659490E3e3dA3294397951eE84C3B28db4) |
+| `SourceRegistry` | Creditcoin CC3 Testnet | [`0xb5f9F7728b24D8173B798b78df92c8Dab21909f3`](https://creditcoin-testnet.blockscout.com/address/0xb5f9F7728b24D8173B798b78df92c8Dab21909f3) |
+| `TestUSDC` | Creditcoin CC3 Testnet | [`0xb257A8aAE29BE4B7A80fbD192C089E233529Dd92`](https://creditcoin-testnet.blockscout.com/address/0xb257A8aAE29BE4B7A80fbD192C089E233529Dd92) |
+| `WorkOracle` | Ethereum Sepolia | [`0x1e40b277AaB35D642c5F30A46276F46A6d3C11A9`](https://sepolia.etherscan.io/address/0x1e40b277AaB35D642c5F30A46276F46A6d3C11A9) |
 
-### The three transactions
+### The 4 transactions
 
 | # | What it proves | Source transaction (Sepolia) | Settlement (Creditcoin) |
 |---|---|---|---|
-| 1 | A proved `WorkCompleted` pays the builder 1,200 tUSDC | [`0xa8b9f6fc06cc...`](https://sepolia.etherscan.io/tx/0xa8b9f6fc06cc9a6513e1754b3c04295e224b04545d8c64616b794e14e1d7b578) | [`0x9a3c9b1d0a32...`](https://creditcoin-testnet.blockscout.com/tx/0x9a3c9b1d0a327cff81ba85f3456abfcf0ee810a1a8a69f8e2451665b9a2c1874) |
-| 2 | A proved `WorkFailed`, submitted by [`0xA0356B80...`](https://creditcoin-testnet.blockscout.com/address/0xA0356B8011B63990978f2a7CCc389c3769d092Ea), **neither the buyer nor the builder**, refunds 1,100 tUSDC and pays that wallet a 100 tUSDC bounty | [`0x31ba9002185e...`](https://sepolia.etherscan.io/tx/0x31ba9002185e45d8ad0573a94fed4dca0e9a6d98317cee204e75f95b1137555a) | [`0x6713f5e66d54...`](https://creditcoin-testnet.blockscout.com/tx/0x6713f5e66d54554df8bf2603221300a890ae32bad8aa60de33015c92712a8966) |
-| 3 | Replaying proof #1 is refused on-chain (`execution reverted: "Query already processed"`) | | [`0xc4738c297669...`](https://creditcoin-testnet.blockscout.com/tx/0xc4738c2976693c67365a8662923dd30e2c7dbc3d8048014ebd972bdd51a92836) |
+| 1 | A proved `WorkCompleted` pays the builder 1,200 tUSDC | [`0xa81e6a2ee9b2...`](https://sepolia.etherscan.io/tx/0xa81e6a2ee9b23067781feed1c696f368e2f3fb520f428a5001edf3bb15bff218) | [`0x507ab15719e3...`](https://creditcoin-testnet.blockscout.com/tx/0x507ab15719e304cd117580bfebccf705c3788a574743e2c889544e3fba72397e) |
+| 2 | A proved `WorkFailed`, submitted by [`0xA0356B80...`](https://creditcoin-testnet.blockscout.com/address/0xA0356B8011B63990978f2a7CCc389c3769d092Ea), **neither the buyer nor the builder**, refunds 1,100 tUSDC and pays that wallet a 100 tUSDC bounty | [`0xdec8b8526795...`](https://sepolia.etherscan.io/tx/0xdec8b852679599b396cdd83f8ae4b45392284d4ea3d648d5953bc6a14e954b92) | [`0x8f9575743aef...`](https://creditcoin-testnet.blockscout.com/tx/0x8f9575743aef5fb49db6570e9f7b57dec4c361afd1d580f2c81e1778e8a915ac) |
+| 3 | Replaying proof #1 is refused on-chain (`execution reverted: "Query already processed"`) | | [`0x06dab25c8d72...`](https://creditcoin-testnet.blockscout.com/tx/0x06dab25c8d722886a110aa2be80b401819826552a65625ad1a7c93f60ca9c360) |
+| 4 | The builder calls `reportCompleted` for their own job on the source chain and is refused there, before any proof can exist. `isReporter(builder)` is `false` | [`0xa1ac8a598953...`](https://sepolia.etherscan.io/tx/0xa1ac8a598953c14cd21bd3f2669eccc8ca7d632fe5a83d77c5629b0dec42c775) reverted | |
 
-_Deployed 2026-09-13T13:19:16.440Z by `0x3Ef919342928307ABdCc9ec702f6f3c4f34f019c` on CC3 chain id 102031, source chain key 1, escrow from block 5480951._
+_Deployed 2026-09-13T18:37:35.191Z by `0x3Ef919342928307ABdCc9ec702f6f3c4f34f019c` on CC3 chain id 102031, source chain key 1, escrow from block 5482220._
 <!-- END:DEPLOYMENT -->
 
 ### Check the integration yourself, without a wallet

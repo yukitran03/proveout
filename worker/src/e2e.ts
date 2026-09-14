@@ -158,7 +158,15 @@ async function main() {
     await sepolia.call({ to: d.workOracle, data, from: builderOnSepolia.address });
     throw new Error('expected the source chain to refuse this');
   } catch (e: any) {
-    selfReason = e?.shortMessage ?? e?.reason ?? e?.message ?? 'reverted';
+    const revertData = e?.data ?? e?.info?.error?.data;
+    try {
+      const parsed = oracle.interface.parseError(revertData);
+      selfReason = parsed
+        ? `${parsed.name}(${parsed.args.map(String).join(', ')})`
+        : (e?.shortMessage ?? 'reverted');
+    } catch {
+      selfReason = e?.shortMessage ?? e?.reason ?? e?.message ?? 'reverted';
+    }
   }
   // Force it on chain so the refusal is a public, checkable artifact.
   const selfTx = await builderOnSepolia.sendTransaction({ to: d.workOracle, data, gasLimit: 120_000n });

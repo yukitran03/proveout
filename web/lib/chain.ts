@@ -42,6 +42,7 @@ export type Transactions = {
     sourceTx: string;
     attemptedBy: string;
     status: number;
+    revertReason: string;
     builderIsReporter: boolean;
   } | null;
 };
