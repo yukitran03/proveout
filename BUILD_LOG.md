@@ -302,34 +302,42 @@ The delivery e2e finished with time left, so the submission moved to it rather t
 the safer earlier run.
 
 A job can now take an **ordinary ERC-20 as its acceptance criterion**. The builder must move at
-least N tokens to a named beneficiary, and the token's own  log is the proof.
+least N tokens to a named beneficiary, and the token's own `Transfer` log is the proof.
 Transaction 03 of the demo settles against canonical Sepolia WETH
-(, verified on chain before it was written into
-the deploy script: name "Wrapped Ether", 3,124 bytes of code). No oracle, no reporter, no
+(`0xfFf9976782d46CC05630D1f6eBAb18b2324d6B14`, verified on chain before it was written into the
+deploy script: name "Wrapped Ether", 3,124 bytes of code). No oracle, no reporter and no
 privileged caller is anywhere in that path, and nobody can emit that Transfer without actually
 moving the tokens.
 
 This answers the sharpest question the project had left, which was why we sourced facts from a
 contract we wrote instead of from protocols that already exist. For an outcome that is itself
-on-chain, we now do. Both kinds stay: an attested job can express a criterion that has no
-on-chain form, a delivery job removes the trust assumption rather than narrowing it, and the
-site and deck say which is which.
+on-chain, we now do.
 
- carries no job id, so a delivery job reserves its route at creation, the triple of
-token, sender and recipient. Exactly one job can match a given log, and an ordinary token's
+Both kinds stay, because they answer different questions. An attested job can express a
+criterion that has no on-chain form. A delivery job removes the source-side trust assumption
+rather than narrowing it. The site, the deck and the threat model each say which is which
+instead of implying nothing is trusted.
+
+`Transfer` carries no job id, so a delivery job reserves its route at creation: the triple of
+token, sender and recipient. Exactly one job can ever match a given log, and an ordinary token's
 unrelated transfers are skipped rather than reverting somebody else's settlement.
 
-118 tests, and the repository matches the deployed bytecode again. Both were briefly out of
+118 tests, and the repository matches the deployed bytecode again. The two were briefly out of
 step while the earlier run was the live one, which is recorded above rather than tidied away.
 
 ## Logo
 
-A stamp mark: one form whose negative space reads as a check or a strike depending on which
-arms you follow, which is the product in one shape. Three variants rather than one file, because
-they have different jobs:  is drawn in  so it inherits the
-theme,  states its colour with a  query because a
-browser tab has no CSS to inherit, and  keeps its own dark ground so it
-survives both GitHub themes.
+A stamp mark: one form whose negative space reads as a check or a strike depending on which arms
+you follow, which is the product in a single shape.
+
+Three variants rather than one file, because they have different jobs.
+
+| File | Job |
+|---|---|
+| `web/public/mark.svg` | drawn in `currentColor`, so it inherits the theme and needs no second copy |
+| `web/app/icon.svg` | states its colour with a `prefers-color-scheme` query, because a browser tab has no CSS to inherit from |
+| `docs/logo-lockup.svg` | keeps its own dark ground, so it survives both GitHub themes in the README |
+
 
 ## Still open
 
